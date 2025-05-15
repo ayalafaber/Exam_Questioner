@@ -9,7 +9,10 @@ namespace Exam_Questioner
 {
     public partial class CreateQuestion : Form
     {
-        private string excelPath = "Questions.xlsx";
+        string filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "database.xlsx");
+        //private string filePath = "database.xlsx";
         private DataTable questionsTable;
         private string selectedQuestionId = null;
 
@@ -30,7 +33,7 @@ namespace Exam_Questioner
 
         private void InitializeExcel()
         {
-            if (!File.Exists(excelPath))
+            if (!File.Exists(filePath))
             {
                 using (var workbook = new XLWorkbook())
                 {
@@ -41,7 +44,7 @@ namespace Exam_Questioner
                     ws.Cell("D1").Value = "קטגוריה";
                     ws.Cell("E1").Value = "רמת קושי";
                     ws.Cell("F1").Value = "תשובה";
-                    workbook.SaveAs(excelPath);
+                    workbook.SaveAs(filePath);
                 }
             }
         }
@@ -54,14 +57,20 @@ namespace Exam_Questioner
                 return;
             }
 
-            string questionId = Guid.NewGuid().ToString();
 
-            using (var workbook = new XLWorkbook(excelPath))
+            using (var workbook = new XLWorkbook(filePath))
             {
                 var ws = workbook.Worksheet("Questions");
+                foreach (var row in ws.RowsUsed().Skip(1))
+                {
+                    // אם התא בעמודה A (ID) ריק – תן לו GUID חדש
+                    if (string.IsNullOrWhiteSpace(row.Cell(1).GetString()))
+                        row.Cell(1).Value = Guid.NewGuid().ToString();
+                }
+                var newQuestionId = Guid.NewGuid().ToString();
                 var lastRow = ws.LastRowUsed().RowNumber() + 1;
 
-                ws.Cell(lastRow, 1).Value = questionId;
+                ws.Cell(lastRow, 1).Value = newQuestionId;
                 ws.Cell(lastRow, 2).Value = txtQuestion.Text;
                 ws.Cell(lastRow, 3).Value = comboBoxType.Text;
                 ws.Cell(lastRow, 4).Value = comboBoxCategory.Text;
@@ -86,7 +95,7 @@ namespace Exam_Questioner
             questionsTable.Columns.Add("רמת קושי");
             questionsTable.Columns.Add("תשובה");
 
-            using (var workbook = new XLWorkbook(excelPath))
+            using (var workbook = new XLWorkbook(filePath))
             {
                 var ws = workbook.Worksheet("Questions");
                 foreach (var row in ws.RowsUsed().Skip(1))
@@ -127,7 +136,7 @@ namespace Exam_Questioner
                 return;
             }
 
-            using (var workbook = new XLWorkbook(excelPath))
+            using (var workbook = new XLWorkbook(filePath))
             {
                 var ws = workbook.Worksheet("Questions");
                 var row = ws.RowsUsed().Skip(1).FirstOrDefault(r => r.Cell(1).GetString() == selectedQuestionId);
@@ -148,7 +157,7 @@ namespace Exam_Questioner
                 return;
             }
 
-            using (var workbook = new XLWorkbook(excelPath))
+            using (var workbook = new XLWorkbook(filePath))
             {
                 var ws = workbook.Worksheet("Questions");
                 var row = ws.RowsUsed().Skip(1).FirstOrDefault(r => r.Cell(1).GetString() == selectedQuestionId);
