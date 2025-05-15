@@ -13,7 +13,9 @@ namespace Study_Management
         {
             try
             {
-                filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "database.xlsx");
+                filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "database.xlsx");
             }
             catch (Exception ex)
             {

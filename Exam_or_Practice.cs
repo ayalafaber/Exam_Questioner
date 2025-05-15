@@ -23,7 +23,7 @@ namespace Exam_Questioner
             // 1. טענת ערכי ComboBox
             // --------------------------------------------------------------------
             comboBox1.Items.Clear();
-            comboBox1.Items.AddRange(new object[] { "אנגלית", "מתמטיקה", "היסטוריה", "תכנות" });
+            comboBox1.Items.AddRange(new object[] { "בדיקות", "תכנות", "עקרונות", "מבנה נתונים" });
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
 
             comboBox2.Items.Clear();

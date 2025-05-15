@@ -34,40 +34,47 @@ namespace Exam_Questioner
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // --- אתחול תיבות הבחירה ------------------------------------------
-            comboBox1.Items.AddRange(new object[]
-            { "אנגלית", "מתמטיקה", "תכנות", "היסטוריה", "רנדומלי", "אחר" });
+            // 1. אתחול ComboBox של רמת הקושי
             comboBox2.Items.AddRange(new object[] { "קל", "בינוני", "קשה" });
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox2.DropDownStyle = ComboBoxStyle.DropDownList;
 
-            // --- טעינת מזהי המבחנים ל־ListBox1 -------------------------------
+            // 2. קביעת נתיב לקובץ ה-Excel
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string filePath = @"C:\Users\nevoi\OneDrive\שולחן העבודה\database.xlsx";
-            if (File.Exists(filePath))
+            string filePath = Path.Combine(desktop, "database.xlsx");
+
+            // 3. פתיחת חיבור ל-Excel עם ClosedXML
+            using (var wb = new XLWorkbook(filePath))
             {
-                using (var wb = new XLWorkbook(filePath))
+                // 4. קבלת הגיליון "Categories" (יצירה אוטומטית אם חסר)
+                var wsCats = wb.Worksheets
+                               .FirstOrDefault(ws => ws.Name == "Categories")
+                           ?? wb.Worksheets.Add("Categories");
+
+                // 5. אם הגיליון הזה ריק לגמרי, נייצר שורה ראשונה של כותרת
+                if (wsCats.Column(1).CellsUsed().Count() == 0)
                 {
-                    var wsIds = wb.Worksheets.FirstOrDefault(ws => ws.Name == "ExamID");
-                    if (wsIds != null)
-                    {
-                        var ids = wsIds
-                            .Column(1)
-                            .CellsUsed()
-                            .Select(c => c.GetString())
-                            .ToArray();
-                        listbox.Items.AddRange(ids);
-                    }
+                    wsCats.Cell(1, 1).Value = "Category";  // כותרת לתא A1
+                    wb.Save();                             // שמירה אם הוספת כותרת
                 }
-            }
-            else
-            {
-                MessageBox.Show("לא נמצא הקובץ database.xlsx על שולחן העבודה.", "שגיאה");
+
+                // 6. קריאת כל הקטגוריות מהעמודה A, החל משורה 2
+                var categories = wsCats
+                    .Column(1)
+                    .CellsUsed()
+                    .Skip(1)                             // דילוג על הכותרת
+                    .Select(c => c.GetString().Trim())
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct()
+                    .ToArray();
+
+                // 7. הוספת הקטגוריות ל-ComboBox1 ואז הוספת האפשרות "אחר"
+                comboBox1.Items.AddRange(categories.Cast<object>().ToArray());
+                comboBox1.Items.Add("אחר");
+                comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             }
 
-            // --- כפתורים כבויים עד לבחירת מבחן -------------------------------
-            button4.Enabled = false;   // הצג מבחן
-            button5.Enabled = false;   // מחק מבחן
+            // 8. כפתורים כבויים עד לבחירת פריט ב-ListBox
+            button4.Enabled = button5.Enabled = false;
         }
 
 
@@ -115,6 +122,7 @@ namespace Exam_Questioner
 
         private void button4_Click(object sender, EventArgs e)
         {
+            // 1. בדיקת בחירה
             var itemText = listbox.SelectedItem as string;
             if (string.IsNullOrEmpty(itemText))
             {
@@ -122,16 +130,22 @@ namespace Exam_Questioner
                 return;
             }
 
-            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"database.xlsx");
+            // 2. בניית נתיב לקובץ Excel על שולחן-העבודה
+            string filePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "database.xlsx");
             if (!File.Exists(filePath))
             {
                 MessageBox.Show("הקובץ לא נמצא.", "שגיאה");
                 return;
             }
 
-            var examId = itemText.Split(new[] { " - " }, StringSplitOptions.None)[0].Trim();
+            // 3. פריסה של המזהה שנבחר (חלק לפני " - ")
+            string examId = itemText.Split(new[] { " - " }, StringSplitOptions.None)[0].Trim();
+
             using (var wb = new XLWorkbook(filePath))
             {
+                // 4. אימות קיום הגיליון בשם ExamId
                 if (!wb.Worksheets.Contains(examId))
                 {
                     MessageBox.Show("המבחן לא קיים במערכת.", "שגיאה");
@@ -139,21 +153,33 @@ namespace Exam_Questioner
                 }
 
                 var ws = wb.Worksheet(examId);
-                var range = ws.RangeUsed();
+
+                // 5. חישוב מספר השורות והעמודות בשימוש
+                int lastRow = ws.LastRowUsed().RowNumber();         // השורה האחרונה עם נתונים
+                int lastCol = ws.LastColumnUsed().ColumnNumber();   // העמודה האחרונה עם נתונים
+
+                // 6. הכנה לתצוגה: הופך גליון לגלוי ומנקה DataGridView
                 dataGridView1.Visible = true;
                 button6.Visible = true;
                 dataGridView1.Columns.Clear();
                 dataGridView1.Rows.Clear();
 
-                // הוספת העמודות לפי שורה 1
-                for (int c = 1; c <= range.ColumnCount(); c++)
-                    dataGridView1.Columns.Add("C" + c, range.Cell(1, c).GetString());
-
-                // הוספת שורות (מהשורה השנייה ואילך)
-                foreach (var row in range.RowsUsed().Skip(1))
+                // 7. הוספת כותרות עמודות מתוך שורה 1 (A עד I)
+                for (int col = 1; col <= lastCol; col++)
                 {
-                    var vals = row.Cells().Select(cell => (object)cell.Value).ToArray();
-                    dataGridView1.Rows.Add(vals);
+                    string header = ws.Cell(1, col).GetString();
+                    dataGridView1.Columns.Add($"C{col}", header);
+                }
+
+                // 8. הוספת שורות נתונים משורה 2 ועד השורה האחרונה
+                for (int row = 2; row <= lastRow; row++)
+                {
+                    object[] values = new object[lastCol];
+                    for (int col = 1; col <= lastCol; col++)
+                    {
+                        values[col - 1] = ws.Cell(row, col).Value;
+                    }
+                    dataGridView1.Rows.Add(values);
                 }
             }
         }
@@ -255,25 +281,60 @@ namespace Exam_Questioner
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // אם המשתמש בחר באפשרות "אחר"
             if (comboBox1.Text == "אחר")
             {
-                button1.Enabled = false;                 // מבטל יצירה רנדומלית
-                string input = Interaction.InputBox("הקלד נושא חדש בעברית בלבד:", "נושא חדש");
+                // 1. נטרל כפתור יצירת המבחן עד שתשלים את הנושא
+                button1.Enabled = false;
+
+                // 2. בקש מהמשתמש להזין נושא חדש
+                string input = Interaction.InputBox(
+                    "הקלד נושא חדש בעברית בלבד:",
+                    "נושא חדש"
+                ).Trim();
+
+                // 3. בדיקת תקינות (רק אותיות עבריות ומרווחים)
                 if (string.IsNullOrWhiteSpace(input) ||
                     !Regex.IsMatch(input, @"^[\u0590-\u05FF\s]+$"))
                 {
-                    MessageBox.Show("נושא לא תקין.");   // שחזור המצב
-                    comboBox1.SelectedIndex = -1;
-                    button1.Enabled = true;
+                    MessageBox.Show("נושא לא תקין.");
+                    comboBox1.SelectedIndex = -1;   // איפוס הבחירה
+                    button1.Enabled = true;         // החזרת כפתור לסטנדרט
                     return;
                 }
+
+                // 4. הוספת הנושא ל-ComboBox1 אם לא קיים כבר
                 if (!comboBox1.Items.Contains(input))
-                    comboBox1.Items.Insert(0, input);    // מוסיף לרשימה
+                {
+                    // הכנס לפני "אחר" כדי ששמרה של "אחר" תישאר בסוף
+                    int idx = comboBox1.Items.IndexOf("אחר");
+                    comboBox1.Items.Insert(idx, input);
+                }
                 comboBox1.SelectedItem = input;
+
+                // 5. שמירת הנושא החדש לגיליון "Categories" ב-Excel
+                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string filePath = Path.Combine(desktop, "database.xlsx");
+                using (var wb = new XLWorkbook(filePath))
+                {
+                    var wsCats = wb.Worksheets
+                                   .FirstOrDefault(ws => ws.Name == "Categories")
+                               ?? wb.Worksheets.Add("Categories");
+
+                    // מציאת השורה האחרונה המלאה בעמודה A
+                    int lastRow = wsCats.LastRowUsed()?.RowNumber() ?? 1;
+                    // הוספת ערך חדש בשורה הבאה
+                    wsCats.Cell(lastRow + 1, 1).Value = input;
+                    wb.Save();
+                }
+
+                // 6. החזרת כפתור יצירת המבחן למצב פעיל
+                button1.Enabled = true;
             }
             else
             {
-                button1.Enabled = true;                  // מאפשר חזרה
+                // כל בחירה אחרת – הכפתור מופעל כרגיל
+                button1.Enabled = true;
             }
         }
 
