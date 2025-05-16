@@ -7,8 +7,10 @@ using ClosedXML.Excel;
 
 namespace Exam_Questioner
 {
+
     public partial class CreateQuestion : Form
     {
+        private string _preselectedCategory = null;
         string filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "database.xlsx");
@@ -20,31 +22,65 @@ namespace Exam_Questioner
         {
             InitializeComponent();
             InitializeExcel();
+            this.Load += CreateQuestion_Load;
 
         }
 
         private void CreateQuestion_Load(object sender, EventArgs e)
         {
-            comboBoxType.Items.AddRange(new string[] { "שאלה פתוחה", "שאלה רב ברירה" });
-            comboBoxCategory.Items.AddRange(new string[] { "מתמטיקה", "היסטוריה", "פיזיקה", "כימיה" });
-            comboBoxDifficulty.Items.AddRange(new string[] { "קל", "בינוני", "קשה" });
+            comboBoxType.Items.AddRange(new[] { "שאלה פתוחה", "שאלה רב ברירה", "שאלת נכון/לא נכון" });
+            comboBoxDifficulty.Items.AddRange(new[] { "קל", "בינוני", "קשה" });
+            comboBoxType.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxDifficulty.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            // טעינת קטגוריות
+            if (_preselectedCategory == null)
+            {
+                using (var wb = new XLWorkbook(filePath))
+                {
+                    var wsCats = wb.Worksheet("Categories");
+                    var cats = wsCats
+                        .Column(1)
+                        .CellsUsed()
+                        .Skip(1)
+                        .Select(c => c.GetString().Trim())
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Distinct()
+                        .ToArray();
+                    comboBoxCategory.Items.Clear();
+                    comboBoxCategory.Items.AddRange(cats);
+                }
+                comboBoxCategory.Enabled = true;
+            }
+            else
+            {
+                comboBoxCategory.Items.Clear();
+                comboBoxCategory.Items.Add(_preselectedCategory);
+                comboBoxCategory.SelectedIndex = 0;
+                comboBoxCategory.Enabled = false;
+            }
+
             LoadQuestionsToGrid();
         }
+
 
         private void InitializeExcel()
         {
             if (!File.Exists(filePath))
             {
-                using (var workbook = new XLWorkbook())
+                using (var wb = new XLWorkbook())
                 {
-                    var ws = workbook.Worksheets.Add("Questions");
+                    var ws = wb.Worksheets.Add("Questions");
                     ws.Cell("A1").Value = "ID";
                     ws.Cell("B1").Value = "שאלה";
                     ws.Cell("C1").Value = "סוג";
                     ws.Cell("D1").Value = "קטגוריה";
                     ws.Cell("E1").Value = "רמת קושי";
                     ws.Cell("F1").Value = "תשובה";
-                    workbook.SaveAs(filePath);
+                    wb.Worksheets.Add("Categories")
+                      .Cell("A1").Value = "Category";
+                    wb.SaveAs(filePath);
+                    wb.SaveAs(filePath);
                 }
             }
         }
@@ -189,5 +225,41 @@ namespace Exam_Questioner
             comboBoxDifficulty.SelectedIndex = -1;
             selectedQuestionId = null;
         }
+
+        private void txtQuestion_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxCategory_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBoxDifficulty_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtAnswer_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void questionsGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+        public void PreselectCategory(string category)
+        {
+            _preselectedCategory = category;
+        }
+
+
     }
 }

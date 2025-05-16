@@ -59,7 +59,7 @@ namespace Exam_Questioner
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(51)))), ((int)(((byte)(0)))));
             this.lblTitle.Location = new System.Drawing.Point(300, 10);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(276, 41);
+            this.lblTitle.Size = new System.Drawing.Size(222, 32);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "יצירת שאלה חדשה";
             // 
@@ -107,32 +107,36 @@ namespace Exam_Questioner
             // 
             this.txtQuestion.Location = new System.Drawing.Point(180, 65);
             this.txtQuestion.Name = "txtQuestion";
-            this.txtQuestion.Size = new System.Drawing.Size(476, 30);
+            this.txtQuestion.Size = new System.Drawing.Size(476, 25);
             this.txtQuestion.TabIndex = 2;
+            this.txtQuestion.TextChanged += new System.EventHandler(this.txtQuestion_TextChanged);
             // 
             // comboBoxType
             // 
             this.comboBoxType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxType.Location = new System.Drawing.Point(180, 102);
             this.comboBoxType.Name = "comboBoxType";
-            this.comboBoxType.Size = new System.Drawing.Size(476, 31);
+            this.comboBoxType.Size = new System.Drawing.Size(476, 25);
             this.comboBoxType.TabIndex = 4;
+            this.comboBoxType.SelectedIndexChanged += new System.EventHandler(this.comboBoxType_SelectedIndexChanged);
             // 
             // comboBoxCategory
             // 
             this.comboBoxCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxCategory.Location = new System.Drawing.Point(180, 145);
             this.comboBoxCategory.Name = "comboBoxCategory";
-            this.comboBoxCategory.Size = new System.Drawing.Size(476, 31);
+            this.comboBoxCategory.Size = new System.Drawing.Size(476, 25);
             this.comboBoxCategory.TabIndex = 6;
+            this.comboBoxCategory.SelectedIndexChanged += new System.EventHandler(this.comboBoxCategory_SelectedIndexChanged);
             // 
             // comboBoxDifficulty
             // 
             this.comboBoxDifficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxDifficulty.Location = new System.Drawing.Point(180, 188);
             this.comboBoxDifficulty.Name = "comboBoxDifficulty";
-            this.comboBoxDifficulty.Size = new System.Drawing.Size(476, 31);
+            this.comboBoxDifficulty.Size = new System.Drawing.Size(476, 25);
             this.comboBoxDifficulty.TabIndex = 8;
+            this.comboBoxDifficulty.SelectedIndexChanged += new System.EventHandler(this.comboBoxDifficulty_SelectedIndexChanged);
             // 
             // txtAnswer
             // 
@@ -141,6 +145,7 @@ namespace Exam_Questioner
             this.txtAnswer.Name = "txtAnswer";
             this.txtAnswer.Size = new System.Drawing.Size(476, 60);
             this.txtAnswer.TabIndex = 10;
+            this.txtAnswer.TextChanged += new System.EventHandler(this.txtAnswer_TextChanged);
             // 
             // btnSave
             // 
@@ -194,6 +199,7 @@ namespace Exam_Questioner
             this.questionsGrid.Size = new System.Drawing.Size(790, 220);
             this.questionsGrid.TabIndex = 14;
             this.questionsGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.questionsGrid_CellClick);
+            this.questionsGrid.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.questionsGrid_CellContentClick);
             // 
             // CreateQuestion
             // 

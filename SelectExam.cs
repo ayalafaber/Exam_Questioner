@@ -67,8 +67,9 @@ namespace Exam_Questioner
                     .Distinct()
                     .ToArray();
 
-                // 7. הוספת הקטגוריות ל-ComboBox1 ואז הוספת האפשרות "אחר"
+                // 7. הוספת הקטגוריות ל-ComboBox1 ואז הוספת האפשרות "אחר" ו"רנדומלי"
                 comboBox1.Items.AddRange(categories.Cast<object>().ToArray());
+                comboBox1.Items.Add("רנדומלי");
                 comboBox1.Items.Add("אחר");
                 comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             }
@@ -86,21 +87,75 @@ namespace Exam_Questioner
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // 1. קלט בסיסי
+            if (comboBox1.SelectedIndex == -1)
+            {
+                MessageBox.Show("בחר נושא.", "שגיאה");
+                return;
+            }
+            if (comboBox2.SelectedIndex == -1)
+            {
+                MessageBox.Show("בחר רמת קושי.", "שגיאה");
+                return;
+            }
             string subject = comboBox1.Text;
             string difficulty = comboBox2.Text;
-            string questionCountText = textBox1.Text;
+            string countText = textBox1.Text;
 
-            var result = ExamGeneratorLogic.TryCreateExam(
+            // 2. "אחר" → בקש נושא חדש, הודע, פתח CreateQuestion נעול
+            if (subject == "אחר")
+            {
+                string input = Interaction.InputBox(
+                    "הקלד נושא חדש בעברית בלבד:",
+                    "נושא חדש"
+                ).Trim();
+                if (string.IsNullOrWhiteSpace(input) ||
+                    !Regex.IsMatch(input, @"^[\u0590-\u05FF\s]+$"))
+                {
+                    MessageBox.Show("נושא לא תקין.", "שגיאה");
+                    return;
+                }
+                // הוספת הנושא לפני "אחר" אם לא קיים
+                if (!comboBox1.Items.Contains(input))
+                {
+                    int idx = comboBox1.Items.IndexOf("אחר");
+                    comboBox1.Items.Insert(idx, input);
+                }
+                MessageBox.Show(
+                    "נושא חדש נוצר, אנא צור לפחות 4 שאלות בנושא זה על מנת ליצור מבחן",
+                    "נושא חדש"
+                );
+                // פתח CreateQuestion עם קטגוריה נעולה
+                var cq = new CreateQuestion();
+                cq.PreselectCategory(input);
+                cq.ShowDialog();
+                return;
+            }
+
+            // 3. "רנדומלי" → בחר נושא אקראי מתוך הקטגוריות (למעט "רנדומלי"/"אחר")
+            if (subject == "רנדומלי")
+            {
+                var rnd = new Random();
+                var valid = comboBox1.Items
+                    .Cast<string>()
+                    .Where(s => s != "רנדומלי" && s != "אחר")
+                    .ToList();
+                subject = valid[rnd.Next(valid.Count)];
+            }
+
+            // 4. קריאה ללוגיקה
+            bool ok = ExamGeneratorLogic.TryCreateExam(
                 subject,
                 difficulty,
-                questionCountText,
+                countText,
                 comboBox1.Items.Cast<string>().ToList(),
                 comboBox2.Items.Cast<string>().ToList(),
                 out string message,
                 out string examId
             );
 
-            if (result)
+            // 5. תוצאה
+            if (ok)
             {
                 listbox.Items.Add($"{examId} - {subject} - {difficulty}");
                 MessageBox.Show(message, "הצלחה");
@@ -110,6 +165,7 @@ namespace Exam_Questioner
                 MessageBox.Show(message, "שגיאה");
             }
         }
+
 
 
 
@@ -281,38 +337,35 @@ namespace Exam_Questioner
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // אם המשתמש בחר באפשרות "אחר"
+            // רק כשבוחרים “אחר”:
             if (comboBox1.Text == "אחר")
             {
-                // 1. נטרל כפתור יצירת המבחן עד שתשלים את הנושא
-                button1.Enabled = false;
-
-                // 2. בקש מהמשתמש להזין נושא חדש
+                // 1. בקש נושא חדש
                 string input = Interaction.InputBox(
                     "הקלד נושא חדש בעברית בלבד:",
                     "נושא חדש"
                 ).Trim();
 
-                // 3. בדיקת תקינות (רק אותיות עבריות ומרווחים)
+                // 2. בדיקת תקינות
                 if (string.IsNullOrWhiteSpace(input) ||
                     !Regex.IsMatch(input, @"^[\u0590-\u05FF\s]+$"))
                 {
-                    MessageBox.Show("נושא לא תקין.");
-                    comboBox1.SelectedIndex = -1;   // איפוס הבחירה
-                    button1.Enabled = true;         // החזרת כפתור לסטנדרט
+                    MessageBox.Show("נושא לא תקין.", "שגיאה");
+                    comboBox1.SelectedIndex = -1;
                     return;
                 }
 
-                // 4. הוספת הנושא ל-ComboBox1 אם לא קיים כבר
+                // 3. הוספת הנושא ל-ComboBox1 לפני הפריט "אחר" (אם לא קיים)
                 if (!comboBox1.Items.Contains(input))
                 {
-                    // הכנס לפני "אחר" כדי ששמרה של "אחר" תישאר בסוף
                     int idx = comboBox1.Items.IndexOf("אחר");
                     comboBox1.Items.Insert(idx, input);
                 }
+
+                // 4. בחירה של הנושא החדש
                 comboBox1.SelectedItem = input;
 
-                // 5. שמירת הנושא החדש לגיליון "Categories" ב-Excel
+                // 5. שמירת הנושא לגיליון "Categories"
                 string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 string filePath = Path.Combine(desktop, "database.xlsx");
                 using (var wb = new XLWorkbook(filePath))
@@ -320,23 +373,29 @@ namespace Exam_Questioner
                     var wsCats = wb.Worksheets
                                    .FirstOrDefault(ws => ws.Name == "Categories")
                                ?? wb.Worksheets.Add("Categories");
-
-                    // מציאת השורה האחרונה המלאה בעמודה A
                     int lastRow = wsCats.LastRowUsed()?.RowNumber() ?? 1;
-                    // הוספת ערך חדש בשורה הבאה
                     wsCats.Cell(lastRow + 1, 1).Value = input;
                     wb.Save();
                 }
 
-                // 6. החזרת כפתור יצירת המבחן למצב פעיל
-                button1.Enabled = true;
-            }
-            else
-            {
-                // כל בחירה אחרת – הכפתור מופעל כרגיל
-                button1.Enabled = true;
+                // 6. הודעה למשתמש
+                MessageBox.Show(
+                    "נושא חדש נוצר, אנא צור לפחות 4 שאלות בנושא זה על מנת ליצור מבחן חדש",
+                    "נושא חדש"
+                );
+
+                // 7. מעבר לטופס יצירת שאלות עם קטגוריה נעולה
+                var cq = new CreateQuestion();
+                cq.PreselectCategory(input);
+                cq.ShowDialog();
+
+                // 8. איפוס הבחירה בחזרה
+                comboBox1.SelectedIndex = -1;
             }
         }
+
+
+
 
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
@@ -375,6 +434,11 @@ namespace Exam_Questioner
         {
             CreateQuestion form = new CreateQuestion();
             form.Show();
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
 
         }
     }
