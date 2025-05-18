@@ -15,7 +15,7 @@ namespace Exam_Questioner
         public static async Task<string> CheckAnswerAsync(string question, string correctAnswer, string userAnswer)
         {
             // מפתח ה-API
-            const string apiKey = "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"; // הכנס כאן את המפתח שלך
+            const string apiKey = "";
             client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
