@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ClosedXML.Excel;
+using System.Text;
 
 namespace Exam_Questioner
 {
@@ -32,7 +34,7 @@ namespace Exam_Questioner
 
             // בברירת־מחדל הכפתורים כבויים
             button1.Enabled = false; // practice
-            button2.Enabled = true;  // toggle list
+            button2.Enabled = false;  // toggle list
             button3.Enabled = false; // start exam
 
             listbox.Visible = false;
@@ -52,15 +54,10 @@ namespace Exam_Questioner
             // אם החלון לא קיים או נסגר – פותחים
             if (_practiceForm == null || _practiceForm.IsDisposed)
             {
-                _practiceForm = new PracticeForm();
+                _practiceForm = new PracticeForm(comboBox1.Text, comboBox2.Text);
                 _practiceForm.Show();
-                button1.Text = "סגור תרגול";
             }
-            else // נסגר
-            {
-                _practiceForm.Close();
-                button1.Text = "פתח תרגול";
-            }
+            
         }
 
         // --------------------------------------------------------------------
@@ -149,11 +146,15 @@ namespace Exam_Questioner
         {
             button1.Enabled = comboBox1.SelectedIndex != -1
                            && comboBox2.SelectedIndex != -1;
+            button2.Enabled = comboBox1.SelectedIndex != -1
+                           && comboBox2.SelectedIndex != -1;
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             button1.Enabled = comboBox1.SelectedIndex != -1
+                           && comboBox2.SelectedIndex != -1;
+            button2.Enabled = comboBox1.SelectedIndex != -1
                            && comboBox2.SelectedIndex != -1;
         }
 

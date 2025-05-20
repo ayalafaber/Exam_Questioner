@@ -49,7 +49,7 @@ namespace Study_Management
                 pnlLecturer.Visible = false;
                 AddStudentButtons();
             }
-            
+
 
 
             else if (_role == "Lecturer")
@@ -58,7 +58,7 @@ namespace Study_Management
                 pnlStudent.Visible = false;
                 AddLecturerButtons();
             }
-            
+
 
 
             CenterLayout();
@@ -146,7 +146,7 @@ namespace Study_Management
             };
             btnStudentStats.Click += (s, e) =>
             {
-                var statsForm = new Student_data.studentData();
+                var statsForm = new Exam_Questioner.studentData();
                 statsForm.Show();
             };
             pnlLecturer.Controls.Add(btnStudentStats);

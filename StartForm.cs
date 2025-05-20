@@ -23,7 +23,7 @@ namespace Study_Management
             );
 
             pnlRoleSelect.Visible = false; // הסתרת פאנל בחירת תפקיד בהתחלה
-                                           
+
 
         }
 
