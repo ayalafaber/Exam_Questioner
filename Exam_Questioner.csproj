@@ -320,6 +320,7 @@
     <Compile Include="studentData.Designer.cs">
       <DependentUpon>studentData.cs</DependentUpon>
     </Compile>
+    <Compile Include="StudentDataLogic.cs" />
     <EmbeddedResource Include="CreateQuestion.resx">
       <DependentUpon>CreateQuestion.cs</DependentUpon>
     </EmbeddedResource>
