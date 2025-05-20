@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using ClosedXML.Excel;
+
 
 namespace Exam_Questioner
 {
@@ -16,6 +18,7 @@ namespace Exam_Questioner
         private readonly string _examId;                       // מזהה המבחן (שם הגיליון)
         private readonly string _category;                     // הקטגוריה של המבחן (עמודה B ב-ExamID)
         private readonly int _originalRichHeight;              // גובה התיבה הפתוחה המקורי
+        private readonly Dictionary<int, string> _userFeedback;  // פידבק מ-GPT (index → feedback)
 
         // 2. בנאי – אתחול והגדרות ראשוניות
         public Exam(string examId)
@@ -32,6 +35,7 @@ namespace Exam_Questioner
             // 2.3 אתחול מזהה מבחן, מילון תשובות ואינדקס התחלתי
             _examId = examId;
             _userAnswers = new Dictionary<int, string>();
+            _userFeedback = new Dictionary<int, string>();
             _currentIndex = 0;
 
             // 2.4 קריאת הקטגוריה מתוך גיליון "ExamID" (עמודה B)
@@ -210,9 +214,10 @@ namespace Exam_Questioner
         }
 
         // 8. כפתור סיום מבחן
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
             SaveCurrentAnswer();
+
             // 8.1 איתור שאלות שלא נענו או ריקות
             var unanswered = Enumerable.Range(0, _questions.Count)
                 .Where(i =>
@@ -225,35 +230,63 @@ namespace Exam_Questioner
             {
                 var list = string.Join(", ", unanswered);
                 var res = MessageBox.Show(
-                    $"לא ענית או השארת ריק בשאלות: {list}\nהאם ברצונך לסיים בכל זאת?",
+                    $"לא ענית או השארת ריק בשאלות: {list}\n" +
+                    "האם ברצונך לסיים בכל זאת?",
                     "שאלות לא נענו", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (res == DialogResult.No)
                     return;
             }
 
-            // 8.2 חישוב ושמירת ציון
-            int score = CalculateScore();
+
+            // 8.2 לולאה על כל השאלות
+            double totalPoints = 0.0;
+            for (int i = 0; i < _questions.Count; i++)
+            {
+                var q = _questions[i];
+                var ans = _userAnswers.TryGetValue(i, out var a) ? a : "";
+                double thisScore = 0.0;
+                if (q.Type == "פתוחה")
+                {
+                    // שליחה ל־GPT
+                    string feedback = await GptAnswerChecker.CheckAnswerAsync(q.Text, q.Correct, ans);
+                    _userFeedback[i] = feedback;
+
+                    // ניתוח הפידבק
+                    if (feedback.StartsWith("כן", StringComparison.OrdinalIgnoreCase))
+                        thisScore = 1.0;
+                    else if (feedback.IndexOf("חצי", StringComparison.OrdinalIgnoreCase) >= 0)
+                        thisScore = 0.5;
+                    else
+                        thisScore = 0.0;
+                }
+                else
+                {
+                    // אמריקאית או TF – השוואה למדויק
+                    thisScore = (ans == q.Correct) ? 1.0 : 0.0;
+                }
+
+                totalPoints += thisScore;
+            }
+
+            // 8.3 חישוב הציון
+            int score = (int)Math.Round(100.0 * totalPoints / _questions.Count);
+
+            // 8.4 הצגת תוצאות + פידבק לשאלות פתוחות בלבד
+            var sb = new StringBuilder();
+            sb.AppendLine($"ציונך: {score}");
+            sb.AppendLine();
+            for (int i = 0; i < _questions.Count; i++)
+            {
+                if (_questions[i].Type == "פתוחה")
+                    sb.AppendLine($"{i + 1}. {_userFeedback[i]}");
+            }
+            MessageBox.Show(sb.ToString(), "סיכום ותובנות");
+
+            // 8.5 שמירת ציון וסגירה
             SaveGrade(score);
-            MessageBox.Show($"המבחן הסתיים! ניקודך: {score}", "סיום");
             Close();
         }
 
-        // 9. חישוב אחוז נכונות מתוך 100
-        private int CalculateScore()
-        {
-            int correctCount = _questions
-                .Where((q, i) =>
-                    _userAnswers.TryGetValue(i, out var ans)
-                    && IsCorrect(q, ans))
-                .Count();
-            return (int)Math.Round(100.0 * correctCount / _questions.Count);
-        }
-
-        // 10. בדיקת תשובה נכונה
-        private bool IsCorrect(Question q, string ans)
-        {
-            return ans == q.Correct;
-        }
 
         // 11. שמירת הציון בגליון "Grades"
         private void SaveGrade(int score)
