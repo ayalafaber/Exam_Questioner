@@ -152,7 +152,6 @@ namespace Study_Management
             pnlLecturer.Controls.Add(btnStudentStats);
         }
 
-
-
+      
     }
 }

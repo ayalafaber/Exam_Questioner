@@ -7,15 +7,15 @@ using System.Linq;
 using System.Windows.Forms;
 using ClosedXML.Excel;
 using System.IO;
-using System.Text.RegularExpressions;   
+using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 
 namespace Exam_Questioner
 {
-    
+
     public partial class SelectExam : Form
     {
-        
+
         public SelectExam()
         {
             InitializeComponent();
@@ -400,7 +400,7 @@ namespace Exam_Questioner
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+
         }
 
 

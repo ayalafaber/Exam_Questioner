@@ -41,7 +41,7 @@ namespace Exam_Questioner
             comboBox2.SelectedIndexChanged += comboBox2_SelectedIndexChanged;
             button1.Click += button1_Click;
             button2.Click += button2_Click;
-            button3.Click += button3_Click;
+
         }
 
         // --------------------------------------------------------------------
