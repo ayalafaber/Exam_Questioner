@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+
 namespace Exam_Questioner
 {
     public static class GptAnswerChecker
@@ -24,7 +25,7 @@ namespace Exam_Questioner
 השאלה: {question}
 תשובה נכונה לדוגמה: {correctAnswer}
 תשובת המשתמש: {userAnswer}
-האם תשובת המשתמש נכונה? ענה 'כן' או 'לא' והסבר בקצרה(תשובתך מוצגת למשתמש אז אין צורך לדבר עיו בגוף שלישי).";
+האם התשובה(של המשתמש) נכונה? ענה 'כן' או 'לא' והסבר בקצרה.";
 
             // גוף הבקשה
             var body = new
