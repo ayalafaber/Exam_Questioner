@@ -49,7 +49,7 @@ namespace Study_Management
                 pnlLecturer.Visible = false;
                 AddStudentButtons();
             }
-            
+
 
 
             else if (_role == "Lecturer")
@@ -58,7 +58,7 @@ namespace Study_Management
                 pnlStudent.Visible = false;
                 AddLecturerButtons();
             }
-            
+
 
 
             CenterLayout();
