@@ -146,7 +146,7 @@ namespace Study_Management
             };
             btnStudentStats.Click += (s, e) =>
             {
-                var statsForm = new Student_data.studentData();
+                var statsForm = new Exam_Questioner.studentData();
                 statsForm.Show();
             };
             pnlLecturer.Controls.Add(btnStudentStats);
