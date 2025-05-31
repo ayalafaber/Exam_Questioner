@@ -44,6 +44,7 @@ namespace Exam_Questioner
             InitializeExcel();
             SetupModernUI();
             this.Load += CreateQuestion_Load;
+            swoosh = new SoundPlayer(Properties.Resources.swoosh);
         }
 
         private void SetupModernUI()
@@ -266,12 +267,12 @@ namespace Exam_Questioner
                         {
                             questionRow.Delete();
                         }
-                        swoosh.Play();
                         wb.Save();
                     }
 
                     MessageBox.Show($"הקטגוריה '{category}' נמחקה בהצלחה יחד עם {questionCount} שאלות.", "הצלחה", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadCategoryButtons(); // רענון התצוגה
+                    swoosh.Play();
                 }
                 catch (Exception ex)
                 {
@@ -1186,8 +1187,10 @@ namespace Exam_Questioner
                     }
 
                     MessageBox.Show("השאלה נמחקה בהצלחה.", "הצלחה", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    swoosh.Play();
                     ClearForm();
                     LoadQuestionsForCategory();
+                    
                 }
             }
             catch (Exception ex)

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
+using System.Media;
 
 namespace Exam_Questioner
 {
@@ -18,12 +19,17 @@ namespace Exam_Questioner
         private Timer confettiTimer;
         private List<ConfettiLabel> confettiLabels;
         private Random random = new Random();
+        private SoundPlayer yayy;
+        private SoundPlayer sad;
+
 
         public StudentReviewsForm(string studentUsername, string studentFullName)
         {
             _studentUsername = studentUsername;
             _studentFullName = studentFullName;
             InitializeComponent();
+            yayy = new SoundPlayer(Properties.Resources.yayy);
+            sad = new SoundPlayer(Properties.Resources.sad);
 
             // Initialize confetti system
             confettiLabels = new List<ConfettiLabel>();
@@ -106,11 +112,22 @@ namespace Exam_Questioner
             // Determine color based on rating
             Color confettiColor = Color.Black; // Default
             if (rating.Contains("מצוין"))
+            {
+                yayy.Play();
                 confettiColor = Color.Gold; // Gold/Yellow for excellent
+
+            }
             else if (rating.Contains("טוב"))
+            {
+                yayy.Play();
                 confettiColor = Color.Green; // Green for good
+            }
             else if (rating.Contains("שיפור"))
+            {
+                sad.Play();
                 confettiColor = Color.Red; // Red for improvement
+
+            }
 
             // Create new confetti labels
             for (int i = 0; i < 30; i++)

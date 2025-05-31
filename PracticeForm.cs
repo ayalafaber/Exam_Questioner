@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ClosedXML.Excel;
 using System.IO;
+using System.Media;
+
 
 namespace Exam_Questioner
 {
@@ -20,9 +22,13 @@ namespace Exam_Questioner
         private readonly string _subject;
         private readonly string _difficulty;
         private readonly int _originalRichHeight;
+        private SoundPlayer correct;
+        private SoundPlayer wrong;
         public PracticeForm(string subject, string difficulty)
         {
             InitializeComponent();
+            correct = new SoundPlayer(Properties.Resources.correct);
+            wrong = new SoundPlayer(Properties.Resources.wrong);
 
             _subject = subject;
             _difficulty = difficulty;
@@ -172,7 +178,11 @@ namespace Exam_Questioner
             if (q.Type == "פתוחה")
             {
                 feedback = await GptAnswerChecker.CheckAnswerAsync(q.Text, q.Correct, ans);
-                isCorrect = feedback.StartsWith("כן") || feedback.Contains("נכונה");
+                var f = feedback.Trim().ToLower();
+                if (f.StartsWith("כן"))
+                    isCorrect = true;
+                else
+                    isCorrect = false;
             }
             else
             {
@@ -181,6 +191,11 @@ namespace Exam_Questioner
                     ? "נכון! כל הכבוד!"
                     : $"לא נכון. התשובה הנכונה היא: {q.Correct}";
             }
+            if (isCorrect)
+                correct.Play();
+            else
+                wrong.Play();
+
 
             // הצג פידבק
             MessageBox.Show(feedback, isCorrect ? "נכון!" : "הערכה");

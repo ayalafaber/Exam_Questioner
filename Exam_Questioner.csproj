@@ -413,11 +413,11 @@
     <Content Include="globe.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Resources\welcome.wav" />
     <None Include="Resources\sad.wav" />
     <None Include="Resources\correct.wav" />
     <None Include="Resources\yayy.wav" />
     <None Include="Resources\wrong.wav" />
-    <None Include="Resources\welcome.wav" />
     <None Include="Resources\swoosh.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -5,6 +5,7 @@ using System.Media;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 
 namespace Exam_Questioner
 {
@@ -15,6 +16,7 @@ namespace Exam_Questioner
         private Button btnClose;
         private Timer glowTimer = new Timer();
         private bool glowState = false;
+        private SoundPlayer welcome;
 
         public FormSplash()
         {
@@ -24,9 +26,10 @@ namespace Exam_Questioner
             this.ClientSize = new Size(800, 600);
             this.DoubleBuffered = true;
             this.Opacity = 0;
+            welcome = new SoundPlayer(Properties.Resources.welcome);
 
             InitUI();
-            PlaySound();
+            
             FadeIn();
         }
 
@@ -56,6 +59,7 @@ namespace Exam_Questioner
             btnSignIn.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, btnSignIn.Width, btnSignIn.Height, 30, 30));
             btnSignIn.Click += async (s, e) =>
             {
+                welcome.Play();
                 glowTimer.Stop();
                 await FadeOut();
                 this.Hide();
@@ -139,15 +143,7 @@ namespace Exam_Questioner
             fadeTimer.Start();
         }
 
-        private void PlaySound()
-        {
-            try
-            {
-                SoundPlayer player = new SoundPlayer("intro.wav");
-                player.Play();
-            }
-            catch { /* אם אין קובץ – לא לעשות כלום */ }
-        }
+        
 
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(

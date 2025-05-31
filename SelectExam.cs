@@ -10,6 +10,7 @@ using ClosedXML.Excel;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
+using System.Media;
 
 namespace Exam_Questioner
 {
@@ -17,11 +18,13 @@ namespace Exam_Questioner
     {
         // הוספת Label לכותרת המבחן
         private Label lblExamHeader;
+        private SoundPlayer swoosh;
 
         public SelectExam()
         {
             InitializeComponent();
             InitializeExamHeader();
+            swoosh = new SoundPlayer(Properties.Resources.swoosh);
         }
 
         // יצירת Label לכותרת המבחן
@@ -367,6 +370,7 @@ namespace Exam_Questioner
             // 3. עדכון ה-ListBox
             listbox.Items.Remove(itemText);
             MessageBox.Show($"המבחן {examId} נמחק בהצלחה.", "הצלחה", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            swoosh.Play();
         }
 
         // אירוע סגירת DataGrid
