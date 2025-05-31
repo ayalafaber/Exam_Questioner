@@ -8,14 +8,18 @@ using System.Text;
 
 namespace Exam_Questioner
 {
+
     public partial class Exam_or_Practice : Form
     {
+        private string _username;
+
         private PracticeForm _practiceForm;
 
-        public Exam_or_Practice()
+        public Exam_or_Practice(string username)
         {
             InitializeComponent();
             // וודאו שבאירוע הזה מחובר ב–Designer:
+            _username = username;
             this.Load += examORexercise_Load;
         }
 
@@ -44,6 +48,7 @@ namespace Exam_Questioner
             button1.Click += button1_Click;
             button2.Click += button2_Click;
 
+
         }
 
         // --------------------------------------------------------------------
@@ -59,7 +64,6 @@ namespace Exam_Questioner
             }
             
         }
-
         // --------------------------------------------------------------------
         // 3. Toggle listbox visibility & load exams
         // --------------------------------------------------------------------
@@ -72,11 +76,14 @@ namespace Exam_Questioner
                 return;
             }
 
-            // 1. קרא את הבחירות
+            // 1. הצג את GroupBox של בחירת המבחן
+            resultsGroupBox.Visible = true;
+
+            // 2. קרא את הבחירות
             string selectedSubject = comboBox1.Text;
             string selectedDifficulty = comboBox2.Text;
 
-            // 2. נקה ולטעון
+            // 3. נקה ולטעון
             listbox.Items.Clear();
             string path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -91,7 +98,7 @@ namespace Exam_Questioner
                         var id = row.Cell(1).GetString();
                         var category = row.Cell(2).GetString();
                         var difficulty = row.Cell(3).GetString();
-                        // 3. רק אם מתאים
+                        // 4. רק אם מתאים
                         if (string.Equals(category, selectedSubject, StringComparison.OrdinalIgnoreCase)
                          && string.Equals(difficulty, selectedDifficulty, StringComparison.OrdinalIgnoreCase))
                         {
@@ -106,13 +113,10 @@ namespace Exam_Questioner
                 return;
             }
 
-            // 4. הצג/עדכן כפתור התחלת מבחן
+            // 5. עדכן כפתור התחלת מבחן
             listbox.Visible = true;
-            listbox.Enabled = true;
-            button3.Visible = true;
             button3.Enabled = listbox.Items.Count > 0;
         }
-
 
         // --------------------------------------------------------------------
         // 4. Enable “Start Exam” when user picks from list
@@ -135,7 +139,7 @@ namespace Exam_Questioner
             }
             // מפצלים את המזהה לפני ה־" - "
             var examId = itemText.Split(new[] { " - " }, StringSplitOptions.None)[0].Trim();
-            var examForm = new Exam(examId);
+            var examForm = new Exam(examId, _username);
             examForm.ShowDialog();
         }
 
@@ -161,5 +165,25 @@ namespace Exam_Questioner
         // שאר האירועים נשארים ריקים או יוסרו אם לא דרושים
         private void label4_Click(object sender, EventArgs e) { }
         private void label3_Click(object sender, EventArgs e) { }
+
+        private void Exam_or_Practice_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panelSelectors_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panelMain_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void mainPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

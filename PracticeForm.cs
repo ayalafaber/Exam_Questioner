@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -251,6 +252,11 @@ namespace Exam_Questioner
             public string Type { get; set; }
             public string Correct { get; set; }
             public List<string> Choices { get; set; }
+        }
+
+        private void labelTitle_Click(object sender, EventArgs e)
+        {
+
         }
     }
 

@@ -18,7 +18,7 @@ namespace Exam_Questioner
     public partial class studentData : Form
     {
         private StudentDataLogic logic;
-        
+
         public studentData()
         {
             InitializeComponent();
@@ -30,6 +30,8 @@ namespace Exam_Questioner
             dataGridView3.Visible = false;
             txtSearchName.Visible = false;
             btnSearch.Visible = false;
+            button4.Visible = false; // הסתרת כפתור חיפוש לפי ת"ז
+
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -47,12 +49,15 @@ namespace Exam_Questioner
                 dataGridView1.Rows.Clear();
                 var data = logic.GetAllStudentGrades();
                 dataGridView1.DataSource = data;
+                dataGridView1.ColumnHeadersVisible = false;
                 dataGridView1.RightToLeft = RightToLeft.Yes;
                 dataGridView1.Visible = true;
                 dataGridView2.Visible = false;
                 dataGridView3.Visible = false;
                 txtSearchName.Visible = true; // הפעלת אפשרות חיפוש
                 btnSearch.Visible = true;
+                button4.Visible = true; // הצגת כפתור חיפוש לפי ת"ז
+
             }
             catch (Exception ex)
             {
@@ -74,6 +79,7 @@ namespace Exam_Questioner
                 dataGridView3.Visible = false;
                 txtSearchName.Visible = false;
                 btnSearch.Visible = false;
+                button4.Visible = false;
             }
             catch (Exception ex)
             {
@@ -101,6 +107,7 @@ namespace Exam_Questioner
                 dataGridView2.Visible = false;
                 txtSearchName.Visible = false;
                 btnSearch.Visible = false;
+                button4.Visible = false;
 
                 dataGridView3.Columns.Clear(); // חשוב!
                 dataGridView3.AutoGenerateColumns = true; // הבטחת עמודות
@@ -151,7 +158,7 @@ namespace Exam_Questioner
 
             try
             {
-                var result = logic.SearchStudentByName(nameToSearch);
+                var result = logic.SearchStudentByNameViaUsersSheet(nameToSearch);
 
                 if (result.Rows.Count > 2)
                 {
@@ -168,6 +175,38 @@ namespace Exam_Questioner
             catch (Exception ex)
             {
                 MessageBox.Show("שגיאה בחיפוש:\n" + ex.Message);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            string idToSearch = txtSearchName.Text.Trim();
+
+            if (string.IsNullOrEmpty(idToSearch))
+            {
+                MessageBox.Show("אנא הזן מספר תעודת זהות לחיפוש.");
+                return;
+            }
+
+            try
+            {
+                var result = logic.SearchStudentByID(idToSearch);
+
+                if (result.Rows.Count > 2)
+                {
+                    dataGridView1.DataSource = result;
+                    dataGridView1.Visible = true;
+                    dataGridView2.Visible = false;
+                    dataGridView3.Visible = false;
+                }
+                else
+                {
+                    MessageBox.Show("לא נמצאו ציונים עבור הסטודנט המבוקש.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message); // שגיאה מותאמת כמו "לא נמצא סטודנט עם מספר תעודת הזהות שהזנת."
             }
         }
     }

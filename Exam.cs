@@ -18,9 +18,12 @@ namespace Exam_Questioner
         private readonly string _category;
         private readonly int _originalRichHeight;
         private readonly string _filePath;
+        private readonly string _username;
 
-        public Exam(string examId)
+
+        public Exam(string examId, string username)
         {
+            _username = username;
             InitializeComponent();
 
             textBox1.ReadOnly = true;
@@ -194,7 +197,7 @@ namespace Exam_Questioner
 
             MessageBox.Show(sb.ToString(), "סיכום ותובנות");
 
-            ExamLogic.SaveGrade(_filePath, Environment.UserName, _category, score);
+            ExamLogic.SaveGrade(_filePath, _username, _category, score);
             Close();
         }
 

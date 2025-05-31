@@ -90,16 +90,45 @@ namespace Exam_Questioner
         {
             using (var wb = new XLWorkbook(filePath))
             {
-                var ws = wb.Worksheet("Grades");
+                var usersWs = wb.Worksheet("Users");
+                var gradesWs = wb.Worksheet("Grades");
 
-                int col = ws
+                bool isStudent = false;
+                var userRow = usersWs
+                    .Column(1) 
+                    .CellsUsed()
+                    .Skip(1)
+                    .FirstOrDefault(c => c.GetString() == student);
+
+                if (userRow != null)
+                {
+                    var row = userRow.WorksheetRow();
+                    var role = row.Cell(6).GetString(); 
+                    if (role == "Student")
+                    {
+                        isStudent = true;
+                    }
+                }
+
+                if (!isStudent)
+                {
+                    Console.WriteLine("המשתמש אינו סטודנט. לא נשמר ציון.");
+                    return;
+                }
+
+                int col = gradesWs
                     .Row(2)
                     .CellsUsed()
                     .FirstOrDefault(c => c.GetString() == category)?
                     .Address.ColumnNumber ?? -1;
-                if (col < 2) return;
 
-                var rowCell = ws
+                if (col < 2)
+                {
+                    Console.WriteLine("קטגוריה לא נמצאה.");
+                    return;
+                }
+
+                var rowCell = gradesWs
                     .Column(1)
                     .CellsUsed()
                     .Skip(1)
@@ -107,9 +136,9 @@ namespace Exam_Questioner
 
                 if (rowCell == null)
                 {
-                    int newRow = ws.LastRowUsed().RowNumber() + 1;
-                    ws.Cell(newRow, 1).Value = student;
-                    ws.Cell(newRow, col).Value = score;
+                    int newRow = gradesWs.LastRowUsed().RowNumber() + 1;
+                    gradesWs.Cell(newRow, 1).Value = student;
+                    gradesWs.Cell(newRow, col).Value = score;
                 }
                 else
                 {
@@ -117,7 +146,9 @@ namespace Exam_Questioner
                 }
 
                 wb.Save();
+                Console.WriteLine("הציון נשמר בהצלחה.");
             }
-        }
     }
+
+}
 }

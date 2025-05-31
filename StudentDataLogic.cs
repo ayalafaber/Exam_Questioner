@@ -4,6 +4,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using ClosedXML.Excel;
+using System.Windows.Forms;
+
 
 namespace Exam_Questioner
 {
@@ -25,14 +27,25 @@ namespace Exam_Questioner
                 var range = ws.RangeUsed();
 
                 DataTable dt = new DataTable();
-                foreach (var cell in range.Row(1).Cells())
-                    dt.Columns.Add(cell.GetString());
 
-                foreach (var row in range.RowsUsed().Skip(1))
+                // קביעת מספר העמודות לפי השורה השלישית
+                var levelRow = ws.Row(3);
+                int colCount = levelRow.LastCellUsed().Address.ColumnNumber;
+
+                // יצירת עמודות גנריות – Column1, Column2 וכו'
+                for (int i = 0; i < colCount; i++)
+                {
+                    dt.Columns.Add("Column" + (i + 1));
+                }
+
+                // הוספת כל השורות כולל מקצועות, רמות, תלמידים
+                foreach (var row in ws.RowsUsed().Skip(1)) // דילוג רק על שורת Subject
                 {
                     var dataRow = dt.NewRow();
-                    for (int i = 0; i < range.ColumnCount(); i++)
-                        dataRow[i] = row.Cell(i + 1).Value;
+                    for (int i = 1; i <= colCount; i++)
+                    {
+                        dataRow[i - 1] = row.Cell(i).Value;
+                    }
                     dt.Rows.Add(dataRow);
                 }
 
@@ -165,37 +178,111 @@ namespace Exam_Questioner
             }
         }
         // פונקציה 4 - חיפוש סטודנט לפי שם
-        public DataTable SearchStudentByName(string name)
+        public DataTable SearchStudentByNameViaUsersSheet(string name)
         {
             using (var wb = new XLWorkbook(filePath))
             {
-                var ws = wb.Worksheet("Grades");
+                // 1. מציאת שם המשתמש לפי שם מהגיליון Users
+                var wsUsers = wb.Worksheet("Users");
+                string username = null;
+
+                foreach (var row in wsUsers.RowsUsed().Skip(1)) // נניח ששורה 1 היא כותרות
+                {
+                    string fullName = row.Cell(4).GetString().Trim(); // עמודה D
+                    if (fullName.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        username = row.Cell(1).GetString().Trim(); // עמודה A
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(username))
+                    throw new Exception("לא נמצא סטודנט עם השם שהזנת");
+
+                // 2. מציאת הציונים לפי שם המשתמש בגיליון Grades
+                var wsGrades = wb.Worksheet("Grades");
 
                 DataTable dt = new DataTable();
+                int colCount = wsGrades.Row(3).LastCellUsed().Address.ColumnNumber;
 
-                // שלב 1: כותרות העמודות — נקבע ידנית
-                int colCount = ws.Row(3).LastCellUsed().Address.ColumnNumber;
-                // מספר עמודות לפי שורת המקצועות
+                // הוספת כותרות
                 for (int i = 0; i < colCount; i++)
-                    dt.Columns.Add("Column" + (i + 1)); // או תני שמות יפים יותר אם את רוצה
+                    dt.Columns.Add("Column" + (i + 1));
 
-                // שלב 2: שורת המקצועות (שורה 2 באקסל)
-                var rowSubjects = dt.NewRow();
+                // הוספת שורת נושאים ורמות
+                var subjects = dt.NewRow();
                 for (int i = 0; i < colCount; i++)
-                    rowSubjects[i] = ws.Row(2).Cell(i + 1).Value;
-                dt.Rows.Add(rowSubjects);
+                    subjects[i] = wsGrades.Row(2).Cell(i + 1).Value;
+                dt.Rows.Add(subjects);
 
-                // שלב 3: שורת הרמות (שורה 3 באקסל)
-                var rowLevels = dt.NewRow();
+                var levels = dt.NewRow();
                 for (int i = 0; i < colCount; i++)
-                    rowLevels[i] = ws.Row(3).Cell(i + 1).Value;
-                dt.Rows.Add(rowLevels);
+                    levels[i] = wsGrades.Row(3).Cell(i + 1).Value;
+                dt.Rows.Add(levels);
 
-                // שלב 4: חיפוש התלמיד (שורה 4 והלאה)
-                foreach (var row in ws.RowsUsed().Skip(3))
+                foreach (var row in wsGrades.RowsUsed().Skip(3))
                 {
-                    string studentName = row.Cell(1).GetString().Trim();
-                    if (studentName.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
+                    string rowUsername = row.Cell(1).GetString().Trim(); // עמודה A
+                    if (rowUsername.Equals(username, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var studentRow = dt.NewRow();
+                        for (int i = 0; i < colCount; i++)
+                            studentRow[i] = row.Cell(i + 1).Value;
+                        dt.Rows.Add(studentRow);
+                        break;
+                    }
+                }
+
+                return dt;
+            }
+        }
+
+        public DataTable SearchStudentByID(string idNumber)
+        {
+            using (var wb = new XLWorkbook(filePath))
+            {
+                // 1. חיפוש שם משתמש לפי תז בגליון Users
+                var wsUsers = wb.Worksheet("Users");
+                string username = null;
+
+                foreach (var row in wsUsers.RowsUsed().Skip(1)) // שורה 1 היא כותרת
+                {
+                    string id = row.Cell(3).GetString().Trim(); // עמודה C = ת"ז
+                    if (id.Equals(idNumber.Trim(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        username = row.Cell(1).GetString().Trim(); // עמודה A = שם משתמש
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(username))
+                    throw new Exception("לא נמצא סטודנט עם מספר תעודת הזהות שהזנת.");
+
+                // 2. שליפת הציונים מגיליון Grades לפי שם משתמש
+                var wsGrades = wb.Worksheet("Grades");
+
+                DataTable dt = new DataTable();
+                int colCount = wsGrades.Row(3).LastCellUsed().Address.ColumnNumber;
+
+                // שורת נושאים
+                var subjects = dt.NewRow();
+                for (int i = 0; i < colCount; i++)
+                    dt.Columns.Add("Column" + (i + 1));
+                for (int i = 0; i < colCount; i++)
+                    subjects[i] = wsGrades.Row(2).Cell(i + 1).Value;
+                dt.Rows.Add(subjects);
+
+                // שורת רמות
+                var levels = dt.NewRow();
+                for (int i = 0; i < colCount; i++)
+                    levels[i] = wsGrades.Row(3).Cell(i + 1).Value;
+                dt.Rows.Add(levels);
+
+                // מציאת שורת הציונים לפי שם משתמש
+                foreach (var row in wsGrades.RowsUsed().Skip(3))
+                {
+                    string rowUsername = row.Cell(1).GetString().Trim();
+                    if (rowUsername.Equals(username, StringComparison.OrdinalIgnoreCase))
                     {
                         var studentRow = dt.NewRow();
                         for (int i = 0; i < colCount; i++)
@@ -210,12 +297,76 @@ namespace Exam_Questioner
         }
 
 
+        public List<(string Subject, string Level, int? Score)> GetStudentScoresDetailed(string studentName)
+        {
+            var scores = new List<(string Subject, string Level, int? Score)>();
+            var allLevels = new[] { "קל", "בינוני", "קשה" };
+            var subjectToLevels = new Dictionary<string, Dictionary<string, int?>>();
+
+            using (var wb = new XLWorkbook(filePath))
+            {
+                var ws = wb.Worksheet("Grades");
+                var rows = ws.RowsUsed().ToList();
+
+                var subjectRow = rows[1]; // שורת שמות מקצועות
+                var levelRow = rows[2];   // שורת רמות
+                var studentRow = rows.FirstOrDefault(r =>
+                    r.Cell(1).GetString().Trim().Equals(studentName.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                if (studentRow == null)
+                    return scores;
+
+                int lastCol = studentRow.LastCellUsed().Address.ColumnNumber;
+                string currentSubject = null;
+
+                for (int col = 2; col <= lastCol; col++)
+                {
+                    // שמירת שם מקצוע נוכחי אם כתוב
+                    string subjectCell = subjectRow.Cell(col).GetString().Trim();
+                    if (!string.IsNullOrWhiteSpace(subjectCell))
+                    {
+                        currentSubject = subjectCell;
+                    }
+
+                    string level = levelRow.Cell(col).GetString().Trim();
+
+                    // אם אין רמה או אין מקצוע עד כה, ממשיכים
+                    if (string.IsNullOrWhiteSpace(level) || string.IsNullOrWhiteSpace(currentSubject))
+                        continue;
+
+                    // קבלת הציון מהתא
+                    string raw = studentRow.Cell(col).GetString().Trim();
+                    int? score = null;
+                    if (double.TryParse(raw, out double parsedScore))
+                        score = (int)Math.Round(parsedScore);
+
+                    if (!subjectToLevels.ContainsKey(currentSubject))
+                        subjectToLevels[currentSubject] = new Dictionary<string, int?>();
+
+                    subjectToLevels[currentSubject][level] = score;
+                }
+
+                // שלב סופי: מוודאים 3 רמות לכל מקצוע
+                foreach (var subject in subjectToLevels.Keys)
+                {
+                    foreach (var level in allLevels)
+                    {
+                        int? score = subjectToLevels[subject].ContainsKey(level)
+                            ? subjectToLevels[subject][level]
+                            : null;
+
+                        scores.Add((subject, level, score));
+                    }
+                }
+            }
+
+            return scores;
+        }
+
+
+
+
     }
 
+
 }
-
-
-
-    
-
-

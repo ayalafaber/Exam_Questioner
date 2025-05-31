@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Net;
 
-
-
-namespace Study_Management
+namespace Exam_Questioner
 {
     public partial class LogInForm : Form
     {
@@ -28,86 +27,95 @@ namespace Study_Management
                 return;
             }
 
-            bool exists = ExcelHelper.UserExists(username, password, selectedRole);
-            if (exists)
+            // האם שם המשתמש קיים?
+            if (!ExcelHelper.UsernameExists(username))
             {
-                // התחברות הצליחה – תציג גם את ההתחברות לפי התפקיד
-                MessageBox.Show($"התחברת כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}.");
+                MessageBox.Show("שם המשתמש לא קיים במערכת.");
+                return;
+            }
 
-                MainForm mainForm = new MainForm(username, selectedRole);
+            // נבדוק אם קיימת התאמה לשם משתמש וסיסמה בתפקיד המבוקש
+            bool exactMatch = ExcelHelper.UserExists(username, password, role);
+
+            if (exactMatch)
+            {
+                string fullName = ExcelHelper.GetFullName(username, role);
+                MessageBox.Show($"התחברת כ{(role == "Student" ? "סטודנט" : "מרצה")}.");
+
+                MainForm mainForm = new MainForm(username, fullName, role);
                 mainForm.StartPosition = FormStartPosition.Manual;
                 mainForm.Location = this.Location;
 
                 this.Hide();
                 mainForm.ShowDialog();
                 this.Close();
+                return;
             }
-            else
+
+            // אם אין התאמה לתפקיד הנוכחי – נבדוק אם שם משתמש וסיסמה נכונים אבל עם תפקיד אחר
+            foreach (var altRole in new[] { "Student", "Lecturer" })
             {
-                // התחברות נכשלה – אל תציג שום תפקיד
-                MessageBox.Show("שם משתמש, סיסמה או תפקיד שגויים.");
-
-                // change to seperate messages!!!!
+                if (altRole != role && ExcelHelper.UserExists(username, password, altRole))
+                {
+                    MessageBox.Show("שם משתמש ו/או סיסמה נכונים, אך התפקיד שגוי.");
+                    return;
+                }
             }
 
-
+            // אחרת – הסיסמה שגויה
+            MessageBox.Show("הסיסמה שגויה עבור שם המשתמש הזה.");
         }
 
 
         private void BtnRegister_Click(object sender, EventArgs e)
         {
-            // במקום לרשום מה־Login Form, פשוט פותחים את מסך ההרשמה
             RegisterForm registerForm = new RegisterForm(selectedRole);
             registerForm.Show();
-            this.Hide(); // לא חובה, רק אם את רוצה להסתיר את מסך ההתחברות
+            this.Hide();
         }
 
         private void LogInForm_Load(object sender, EventArgs e)
         {
-            CenterPanel();
-
-            this.Resize += (s, eArgs) => CenterPanel();
+            // עדכון הטקסט של הכותרת
             lblRole.Text = $"התחברות כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}";
-
         }
 
-
-        private void CenterPanel()
-        {
-            pnlContainer.Location = new Point(
-                (this.ClientSize.Width - pnlContainer.Width) / 2,
-                (this.ClientSize.Height - pnlContainer.Height) / 2
-            );
-
-            // מיקום של הטקסט בתוך הפאנל
-            lblUsername.Top = 20;
-            lblUsername.Left = 30;
-            txtUsername.Top = lblUsername.Top;
-            txtUsername.Left = lblUsername.Right + 10;
-
-            lblPassword.Top = lblUsername.Bottom + 20;
-            lblPassword.Left = lblUsername.Left;
-            txtPassword.Top = lblPassword.Top;
-            txtPassword.Left = lblPassword.Right + 10;
-
-            // מיקום כפתור התחברות
-            btnLogin.Top = txtPassword.Bottom + 30;
-            btnLogin.Left = (pnlContainer.Width - btnLogin.Width) / 2;
-
-            // כפתור חזור
-            btnBack.Top = 10;
-            btnBack.Left = 10;
-        }
 
         private void btnBack_Click(object sender, EventArgs e)
         {
             this.Hide();
             StartForm startForm = new StartForm();
-            startForm.ShowDialog(); // ⬅️ בלי ShowRoleSelectionOnly
+            startForm.ShowDialog();
             this.Close();
         }
+        private void BtnTogglePassword_Click(object sender, EventArgs e)
+        {
+            txtPassword.UseSystemPasswordChar = !txtPassword.UseSystemPasswordChar;
+        }
 
+        private void lblRole_Click(object sender, EventArgs e)
+        {
 
+        }
 
+        private void txtUsername_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblUsername_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtPassword_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void mainPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

@@ -60,7 +60,6 @@ namespace Exam_Questioner
                 await FadeOut();
                 this.Hide();
                 new StartForm().ShowDialog();
-                this.Show(); // חזרה אם סגרו את StartForm
             };
             this.Controls.Add(btnSignIn);
 
