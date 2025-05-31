@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ClosedXML.Excel;
+using System.Media;
 
 namespace Exam_Questioner
 {
@@ -17,6 +18,7 @@ namespace Exam_Questioner
                 "database.xlsx");
         private DataTable questionsTable;
         private string selectedQuestionId = null;
+        private SoundPlayer swoosh;
 
         // רכיבי UI לתשובות
         private Panel pnlAnswerContainer;
@@ -264,7 +266,7 @@ namespace Exam_Questioner
                         {
                             questionRow.Delete();
                         }
-
+                        swoosh.Play();
                         wb.Save();
                     }
 
