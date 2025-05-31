@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Media;
+using System.IO;
+
 
 namespace Exam_Questioner
 {
@@ -38,7 +40,7 @@ namespace Exam_Questioner
             // === רקע GIF ===
             gifBox = new PictureBox
             {
-                Image = Image.FromFile("animated_background.gif"),
+                Image = Image.FromFile(Path.Combine(Application.StartupPath, "backgrondgif.gif")),
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 Dock = DockStyle.Fill
             };
