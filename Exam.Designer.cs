@@ -260,6 +260,7 @@
             this.panelQuestion.Name = "panelQuestion";
             this.panelQuestion.Size = new System.Drawing.Size(1327, 260);
             this.panelQuestion.TabIndex = 28;
+            this.panelQuestion.Paint += new System.Windows.Forms.PaintEventHandler(this.panelQuestion_Paint);
             // 
             // labelQuestionTitle
             // 
