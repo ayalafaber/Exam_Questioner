@@ -34,6 +34,7 @@ namespace Exam_Questioner
             _examId = examId;
             _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "database.xlsx");
             _category = ExamLogic.GetGradeCategory(_filePath, _examId);
+            _difficulty = ExamLogic.GetGradeDifficulty(_filePath, _examId);
 
             _userAnswers = new Dictionary<int, string>();
             _userFeedback = new Dictionary<int, string>();
@@ -198,7 +199,6 @@ namespace Exam_Questioner
 
             MessageBox.Show(sb.ToString(), "סיכום ותובנות");
 
-            ExamLogic.SaveGrade(_filePath, _username, _category, score);
             ExamLogic.SaveGrade(_filePath, _username, _category, _difficulty, score);
             Close();
         }
@@ -211,6 +211,7 @@ namespace Exam_Questioner
         private void radioButton4_CheckedChanged(object sender, EventArgs e) { }
         private void richTextBox1_TextChanged(object sender, EventArgs e) { }
         private void progressBar1_Click(object sender, EventArgs e) { }
+
         private void panelQuestion_Paint(object sender, PaintEventArgs e)
         {
 
