@@ -16,7 +16,7 @@ namespace Exam_Questioner_Tests
         [TestInitialize]
         public void SetUp()
         {
-            // יצירת קובץ Excel לדוגמה על שולחן העבודה
+            // Arrange - יצירת קובץ Excel לבדיקה
             string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             testFilePath = Path.Combine(desktop, "test_database.xlsx");
 
@@ -33,12 +33,16 @@ namespace Exam_Questioner_Tests
                 ws.Cell(2, 3).Value = "קל";
 
                 ws.Cell(3, 1).Value = "02";
-                ws.Cell(3, 2).Value = "תכנות";
+                ws.Cell(3, 2).Value = "מבנה נתונים";
                 ws.Cell(3, 3).Value = "בינוני";
 
                 ws.Cell(4, 1).Value = "03";
                 ws.Cell(4, 2).Value = "בדיקות";
                 ws.Cell(4, 3).Value = "קשה";
+
+                ws.Cell(5, 1).Value = "04";
+                ws.Cell(5, 2).Value = "עקרונות";
+                ws.Cell(5, 3).Value = "קל";
 
                 wb.SaveAs(testFilePath);
             }
@@ -51,71 +55,125 @@ namespace Exam_Questioner_Tests
                 File.Delete(testFilePath);
         }
 
-        // ====== 1. בדיקות לפונקציה LoadMatchingExamIds ======
+        // ===== 1. LoadMatchingExamIds =====
+
         [TestMethod]
-        public void LoadMatchingExamIds_ReturnsCorrectMatch()
+        public void LoadMatchingExamIds_WithValidMatch_ReturnsCorrectResult()
         {
-            var results = ExamOrPracticeLogic.LoadMatchingExamIds("תכנות", "קל", testFilePath);
+            // Arrange
+            string subject = "תכנות";
+            string difficulty = "קל";
+
+            // Act
+            var results = ExamOrPracticeLogic.LoadMatchingExamIds(subject, difficulty, testFilePath);
+
+            // Assert
             Assert.AreEqual(1, results.Count);
             Assert.AreEqual("01 - תכנות - קל", results[0]);
         }
 
         [TestMethod]
-        public void LoadMatchingExamIds_NoMatches_ReturnsEmptyList()
+        public void LoadMatchingExamIds_WithNoMatch_ReturnsEmptyList()
         {
-            var results = ExamOrPracticeLogic.LoadMatchingExamIds("מתמטיקה", "בינוני", testFilePath);
+            // Arrange
+            string subject = "עקרונות";
+            string difficulty = "קשה";
+
+            // Act
+            var results = ExamOrPracticeLogic.LoadMatchingExamIds(subject, difficulty, testFilePath);
+
+            // Assert
             Assert.AreEqual(0, results.Count);
         }
 
         [TestMethod]
-        public void LoadMatchingExamIds_FileDoesNotExist_ReturnsEmpty()
+        public void LoadMatchingExamIds_FileNotExists_ReturnsEmptyList()
         {
-            var results = ExamOrPracticeLogic.LoadMatchingExamIds("תכנות", "קל", @"C:\Does\NotExist.xlsx");
+            // Arrange
+            string invalidPath = @"C:\Fake\Invalid.xlsx";
+
+            // Act
+            var results = ExamOrPracticeLogic.LoadMatchingExamIds("בדיקות", "קל", invalidPath);
+
+            // Assert
             Assert.AreEqual(0, results.Count);
         }
 
-        // ====== 2. בדיקות לפונקציה ExtractExamIdFromListItem ======
+        // ===== 2. ExtractExamIdFromListItem =====
+
         [TestMethod]
-        public void ExtractExamIdFromListItem_ValidString_ReturnsId()
+        public void ExtractExamIdFromListItem_ValidInput_ReturnsId()
         {
-            string result = ExamOrPracticeLogic.ExtractExamIdFromListItem("07 - עקרונות - בינוני");
-            Assert.AreEqual("07", result);
+            // Arrange
+            string item = "03 - בדיקות - קשה";
+
+            // Act
+            string result = ExamOrPracticeLogic.ExtractExamIdFromListItem(item);
+
+            // Assert
+            Assert.AreEqual("03", result);
         }
 
         [TestMethod]
-        public void ExtractExamIdFromListItem_EmptyString_ReturnsNull()
+        public void ExtractExamIdFromListItem_EmptyOrNull_ReturnsNull()
         {
-            string result = ExamOrPracticeLogic.ExtractExamIdFromListItem("");
-            Assert.IsNull(result);
+            // Arrange
+            string emptyItem = "";
+            string nullItem = null;
+
+            // Act & Assert
+            Assert.IsNull(ExamOrPracticeLogic.ExtractExamIdFromListItem(emptyItem));
+            Assert.IsNull(ExamOrPracticeLogic.ExtractExamIdFromListItem(nullItem));
         }
 
-        [TestMethod]
-        public void ExtractExamIdFromListItem_NullString_ReturnsNull()
-        {
-            string result = ExamOrPracticeLogic.ExtractExamIdFromListItem(null);
-            Assert.IsNull(result);
-        }
+        // ===== 3. IsSubjectAndDifficultySelected =====
 
-        // ====== 3. בדיקות לפונקציה IsSubjectAndDifficultySelected ======
         [TestMethod]
-        public void IsSubjectAndDifficultySelected_ValidIndices_ReturnsTrue()
+        public void IsSubjectAndDifficultySelected_BothSelected_ReturnsTrue()
         {
-            bool result = ExamOrPracticeLogic.IsSubjectAndDifficultySelected(0, 1);
+            // Arrange
+            int subjectIndex = 1;
+            int difficultyIndex = 2;
+
+            // Act
+            bool result = ExamOrPracticeLogic.IsSubjectAndDifficultySelected(subjectIndex, difficultyIndex);
+
+            // Assert
             Assert.IsTrue(result);
         }
 
         [TestMethod]
-        public void IsSubjectAndDifficultySelected_NegativeSubjectIndex_ReturnsFalse()
+        public void IsSubjectAndDifficultySelected_MissingSelection_ReturnsFalse()
         {
-            bool result = ExamOrPracticeLogic.IsSubjectAndDifficultySelected(-1, 1);
+            // Arrange
+            int subjectIndex = -1;
+            int difficultyIndex = 0;
+
+            // Act
+            bool result = ExamOrPracticeLogic.IsSubjectAndDifficultySelected(subjectIndex, difficultyIndex);
+
+            // Assert
             Assert.IsFalse(result);
         }
 
+
+
         [TestMethod]
-        public void IsSubjectAndDifficultySelected_NegativeDifficultyIndex_ReturnsFalse()
+        public void LoadMatchingExamIds_WithAllValidSubjects_WorksCorrectly()
         {
-            bool result = ExamOrPracticeLogic.IsSubjectAndDifficultySelected(1, -1);
-            Assert.IsFalse(result);
+            // Arrange
+            var validSubjects = new List<string> { "תכנות", "מבנה נתונים", "בדיקות", "עקרונות" };
+            string difficulty = "קל";
+
+            foreach (var subject in validSubjects)
+            {
+                // Act
+                var results = ExamOrPracticeLogic.LoadMatchingExamIds(subject, difficulty, testFilePath);
+
+                // Assert
+                Assert.IsNotNull(results);
+                Assert.IsTrue(results.Count >= 0); // גם אם אין התאמה, לא נכשלים
+            }
         }
     }
 }

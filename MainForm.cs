@@ -1,48 +1,41 @@
 ﻿using Exam_Questioner;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace Study_Management
+namespace Exam_Questioner
 {
     public partial class MainForm : Form
     {
         private readonly string _username;
+        private readonly string _fullName;
         private readonly string _role;
+        private readonly string _email;
 
-        public MainForm(string username, string role)
+        private readonly Dictionary<Button, Color> _originalColors = new Dictionary<Button, Color>();
+
+        public MainForm(string username, string fullName, string role, string Email)
         {
             InitializeComponent();
+
             _username = username;
+            _fullName = fullName;
             _role = role;
-            labelWelcome.Text = $"Welcome, {_username}!";
+            _email = Email;
+
+
+            SetupUI();
         }
 
-        private void btnLogout_Click(object sender, EventArgs e)
+        private void SetupUI()
         {
-            this.Hide();
-            StartForm startForm = new StartForm();
-            startForm.ShowDialog();
-            this.Close();
-        }
+            // Set greeting
+            string firstName = _fullName.Split(' ')[0];
+            lblWelcome.Text = $"שלום {firstName}";
+            lblUserRole.Text = _role == "Student" ? "מחובר בתור סטודנט" : "מחובר בתור מרצה";
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            // גודל כמעט מלא
-            int screenWidth = Screen.PrimaryScreen.WorkingArea.Width;
-            int screenHeight = Screen.PrimaryScreen.WorkingArea.Height;
-            int width = screenWidth - 100;
-            int height = screenHeight - 100;
-
-            this.Size = new Size(width, height);
-
-            // מיקום המסך במרכז
-            this.Location = new Point(
-                (Screen.PrimaryScreen.WorkingArea.Width - width) / 2,
-                (Screen.PrimaryScreen.WorkingArea.Height - height) / 2
-            );
-
-            // הצגת פאנל לפי תפקיד
+            // Show appropriate panel based on role
             if (_role == "Student")
             {
                 pnlStudent.Visible = true;
@@ -59,99 +52,145 @@ namespace Study_Management
                 AddLecturerButtons();
             }
 
+            // Store original button colors
+            _originalColors[btnExams] = Color.FromArgb(59, 130, 246);
+            _originalColors[btnGrades] = Color.FromArgb(34, 197, 94);
+            _originalColors[btnStudentReviews] = Color.FromArgb(236, 72, 153); // צבע ורוד לכפתור הביקורות של הסטודנט
+            _originalColors[btnCreateExam] = Color.FromArgb(249, 115, 22);
+            _originalColors[btnStudentStats] = Color.FromArgb(168, 85, 247);
+            _originalColors[btnLecturerReviews] = Color.FromArgb(220, 38, 127); // צבע ורוד כהה לכפתור הביקורות של המרצה
+            _originalColors[btnLogout] = Color.FromArgb(239, 68, 68);
 
+            // Set button colors to original colors
+            btnExams.BackColor = _originalColors[btnExams];
+            btnGrades.BackColor = _originalColors[btnGrades];
+            btnStudentReviews.BackColor = _originalColors[btnStudentReviews];
+            btnCreateExam.BackColor = _originalColors[btnCreateExam];
+            btnStudentStats.BackColor = _originalColors[btnStudentStats];
+            btnLecturerReviews.BackColor = _originalColors[btnLecturerReviews];
+            btnLogout.BackColor = _originalColors[btnLogout];
 
-            CenterLayout();
-            this.Resize += (s, args) => CenterLayout();
+            // מרכז את הרכיבים בטעינה הראשונית
+            CenterComponents();
         }
 
-        private void CenterLayout()
+        private void CenterComponents()
         {
-            // מיקום הכפתור והטקסט
-            labelWelcome.Top = 20;
-            labelWelcome.Left = (this.ClientSize.Width - labelWelcome.Width) / 2;
+            // קבל את רוחב הפאנל הראשי (לא הטופס כולו)
+            int mainPanelWidth = mainPanel.Width;
 
-            btnLogout.Location = new Point(this.ClientSize.Width - btnLogout.Width - 20, 20);
+            // מרכז את ריבוע הברכות
+            welcomeGroupBox.Location = new Point((mainPanelWidth - welcomeGroupBox.Width) / 2, 20);
 
-            Panel activePanel = pnlStudent.Visible ? pnlStudent : pnlLecturer;
-            activePanel.Location = new Point(
-                (this.ClientSize.Width - activePanel.Width) / 2,
-                (this.ClientSize.Height - activePanel.Height) / 2
-            );
+            // מרכז את הפאנלים (Student/Lecturer)
+            int panelX = (mainPanelWidth - pnlStudent.Width) / 2;
+            pnlStudent.Location = new Point(panelX, 220);
+            pnlLecturer.Location = new Point(panelX, 220);
         }
 
-        private void AddStudentButtons()
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            // כפתור מבחנים
-            Button btnExams = new Button
-            {
-                Text = "מבחנים",
-                Size = new Size(200, 40),
-                Location = new Point(150, 100),
-                BackColor = Color.LightSteelBlue,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
-            };
-            btnExams.Click += (s, e) =>
-            {
-                var examForm = new Exam_or_Practice();  // ← ודאי שזו המחלקה שמראה תרגול או מבחן
-                examForm.ShowDialog();
-            };
-            pnlStudent.Controls.Add(btnExams);
-
-            // כפתור ציונים
-            Button btnGrades = new Button
-            {
-                Text = "ציונים",
-                Size = new Size(200, 40),
-                Location = new Point(150, 160),
-                BackColor = Color.LightGreen,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
-            };
-            btnGrades.Click += (s, e) =>
-            {
-                // בהמשך נפתח Form שיציג ציונים, לדוגמה:
-                MessageBox.Show("מסך ציונים עדיין לא מחובר.");
-                // או: new GradesForm().ShowDialog();
-            };
-            pnlStudent.Controls.Add(btnGrades);
+            // מרכז שוב אחרי שהטופס נטען לגמרי
+            CenterComponents();
         }
 
-
-        private void AddLecturerButtons()
+        private void MainForm_Resize(object sender, EventArgs e)
         {
-            // כפתור יצירת מבחן
-            Button btnCreateExam = new Button
-            {
-                Text = "יצירת מבחן",
-                Size = new Size(200, 40),
-                Location = new Point(150, 100),
-                BackColor = Color.SandyBrown,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
-            };
-            btnCreateExam.Click += (s, e) =>
-            {
-                var examForm = new Exam_Questioner.SelectExam();
-                examForm.Show();
-            };
-            pnlLecturer.Controls.Add(btnCreateExam);
-
-            // כפתור ניתוח נתוני סטודנטים
-            Button btnStudentStats = new Button
-            {
-                Text = "נתוני סטודנטים",
-                Size = new Size(200, 40),
-                Location = new Point(150, 160),
-                BackColor = Color.BurlyWood,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
-            };
-            btnStudentStats.Click += (s, e) =>
-            {
-                var statsForm = new Exam_Questioner.studentData();
-                statsForm.Show();
-            };
-            pnlLecturer.Controls.Add(btnStudentStats);
+            // מרכז מחדש כשגודל החלון משתנה
+            CenterComponents();
         }
 
-      
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            StartForm startForm = new StartForm();
+            startForm.ShowDialog();
+            this.Close();
+        }
+
+        // Student button events
+        private void btnExams_Click(object sender, EventArgs e)
+        {
+            var examForm = new Exam_or_Practice(_fullName);
+            examForm.ShowDialog();
+        }
+
+        private void btnGrades_Click(object sender, EventArgs e)
+        {
+            GradesTracker gradesForm = new GradesTracker(_fullName);
+            gradesForm.Show();
+        }
+
+        private void btnStudentReviews_Click(object sender, EventArgs e)
+        {
+            // פתח את טופס הביקורות של הסטודנט
+            var reviewsForm = new StudentReviewsForm(_username, _fullName);
+            reviewsForm.Show();
+        }
+
+        // Lecturer button events
+        private void btnCreateExam_Click(object sender, EventArgs e)
+        {
+            var examForm = new SelectExam();
+            examForm.Show();
+        }
+
+        private void btnStudentStats_Click(object sender, EventArgs e)
+        {
+            studentData form = new studentData();
+            form.SetCurrentUser(this._username, this._email, this._role);
+            form.Show();
+        }
+
+        private void btnLecturerReviews_Click(object sender, EventArgs e)
+        {
+            // פתח את טופס הביקורות של המרצה
+            var reviewsForm = new LecturerReviewsForm(_username, _fullName);
+            reviewsForm.Show();
+        }
+
+        // Button hover effects - improved version
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (_originalColors.ContainsKey(btn))
+            {
+                var originalColor = _originalColors[btn];
+                // Create darker shade for hover effect
+                int newR = Math.Max(0, originalColor.R - 30);
+                int newG = Math.Max(0, originalColor.G - 30);
+                int newB = Math.Max(0, originalColor.B - 30);
+                btn.BackColor = Color.FromArgb(newR, newG, newB);
+            }
+        }
+
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            Button btn = sender as Button;
+            if (_originalColors.ContainsKey(btn))
+            {
+                btn.BackColor = _originalColors[btn];
+            }
+        }
+
+        private void lblConnectionStatus_Click(object sender, EventArgs e)
+        {
+            // Connection status click handler - can be expanded if needed
+        }
+
+        private void headerPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void studentGroupBox_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void welcomeGroupBox_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }

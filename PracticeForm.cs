@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ClosedXML.Excel;
 using System.IO;
+using System.Media;
+
 
 namespace Exam_Questioner
 {
@@ -19,9 +22,30 @@ namespace Exam_Questioner
         private readonly string _subject;
         private readonly string _difficulty;
         private readonly int _originalRichHeight;
+        private SoundPlayer correct;
+        private SoundPlayer wrong;
+        private int _correctCount = 0;
+        private List<bool> _results;
+        private Timer _practiceTimer;      // טיימר של התרגול
+        private TimeSpan _elapsedTime;     // כמה זמן עבר
+        private DateTime _sessionStartTime; // מתי התחיל
+
         public PracticeForm(string subject, string difficulty)
         {
             InitializeComponent();
+            this.WindowState = FormWindowState.Maximized;
+            this.panelAnswers.AutoScroll = true;
+            BuildPanelAnswers("Open");
+            this.panelAnswers.Size = new System.Drawing.Size(1327, 800);
+            
+            this.panelAnswers.Margin = new Padding(0);
+
+
+
+
+
+            correct = new SoundPlayer(Properties.Resources.correct);
+            wrong = new SoundPlayer(Properties.Resources.wrong);
 
             _subject = subject;
             _difficulty = difficulty;
@@ -44,9 +68,19 @@ namespace Exam_Questioner
                 Close();
                 return;
             }
+            // 3. אתחל רשימת תוצאות
+            _results = new List<bool>(new bool[_questions.Count]);
 
+            // 4. אתחל את התצוגה
             progressBar1.Minimum = 0;
             progressBar1.Maximum = _questions.Count;
+            progressBar1.Value = 0;
+            progressBar1.Style = ProgressBarStyle.Continuous;
+            progressBar1.ForeColor = Color.SeaGreen;
+            labelInsideBar.Text = $"0/{_questions.Count}";
+
+            InitializePracticeTimer();
+
 
             ShowCurrentQuestion();
         }
@@ -61,7 +95,7 @@ namespace Exam_Questioner
             textBox2.Text = q.Text;
             progressBar1.Value = _currentIndex + 1;
 
-            // איפוס כל הבקרים
+            // איפוס כל הבקרים (טוב להשאיר)
             foreach (var rb in new[] { radioButton1, radioButton2, radioButton3, radioButton4 })
             {
                 rb.Visible = rb.Checked = false;
@@ -70,7 +104,15 @@ namespace Exam_Questioner
             richTextBox1.Clear();
             richTextBox1.Height = _originalRichHeight;
 
-            // בחר סוג
+            // כאן - במקום כל ה־if..else שיש לך עכשיו
+            if (q.Type == "אמריקאית")
+                BuildPanelAnswers("MultipleChoice");
+            else if (q.Type == "נכון/לא נכון")
+                BuildPanelAnswers("TrueFalse");
+            else // פתוחה
+                BuildPanelAnswers("Open");
+
+            // אם זו אמריקאית — אפשר להשאיר את ה־Shuffle (רק הטקסטים):
             if (q.Type == "אמריקאית")
             {
                 var rnd = new Random();
@@ -92,8 +134,10 @@ namespace Exam_Questioner
             {
                 richTextBox1.Height = _originalRichHeight * 3;
                 richTextBox1.Visible = true;
-            }
         }
+        }
+
+
 
 
         private List<Question> LoadPracticeQuestions()
@@ -170,8 +214,16 @@ namespace Exam_Questioner
             string feedback;
             if (q.Type == "פתוחה")
             {
+                this.Enabled = false;
+                Cursor = Cursors.WaitCursor;
                 feedback = await GptAnswerChecker.CheckAnswerAsync(q.Text, q.Correct, ans);
-                isCorrect = feedback.StartsWith("כן") || feedback.Contains("נכונה");
+                Cursor = Cursors.Default;
+                this.Enabled = true;
+                var f = feedback.Trim().ToLower();
+                if (f.StartsWith("כן"))
+                    isCorrect = true;
+                else
+                    isCorrect = false;
             }
             else
             {
@@ -181,10 +233,27 @@ namespace Exam_Questioner
                     : $"לא נכון. התשובה הנכונה היא: {q.Correct}";
             }
 
-            // הצג פידבק
+            // נגן צליל בהתאם
+            if (isCorrect)
+                correct.Play();
+            else
+                wrong.Play();
+
+            // שמירת התוצאה ברשימת התשובות
+            _results[_currentIndex] = isCorrect;
+
+            // אם ענו נכון – נגדיל את _correctCount
+            if (isCorrect)
+                _correctCount++;
+
+            // הצגת פידבק מיידי (לא משנה למהלך ה־ProgressBar)
             MessageBox.Show(feedback, isCorrect ? "נכון!" : "הערכה");
 
-            // מעבר לשאלה הבאה או סיום
+            // ===== עדכון ה־ProgressBar לפי כמות התשובות הנכונות =====
+            progressBar1.Value = _correctCount;
+            labelInsideBar.Text = $"{_correctCount}/{_questions.Count}";
+
+            // מעבר לשאלה הבאה או הצגת סיכום בסיום
             if (_currentIndex < _questions.Count - 1)
             {
                 _currentIndex++;
@@ -192,10 +261,42 @@ namespace Exam_Questioner
             }
             else
             {
-                MessageBox.Show("נגמרו השאלות, התרגול הסתיים.", "סיום");
+                // התרגול הסתיים – בונים מחרוזת סיכום
+                var sb = new StringBuilder();
+                sb.AppendLine("סיכום התרגול:");
+                sb.AppendLine($"ענית נכון על {_correctCount} מתוך {_questions.Count} שאלות.");
+                sb.AppendLine();
+                for (int i = 0; i < _questions.Count; i++)
+                {
+                    string status = _results[i] ? "✅ נכון" : "❌ טעות";
+                    sb.AppendLine($"שאלה {i + 1}: {status}");
+                }
+
+                // עוצרים את הטיימר
+                if (_practiceTimer != null)
+                {
+                    _practiceTimer.Stop();
+                }
+
+                // מוסיפים לסיכום — כמה זמן לקח
+                sb.AppendLine();
+                sb.AppendLine($"⏱️ זמן כולל: {(int)_elapsedTime.TotalHours:D2}:{_elapsedTime.Minutes:D2}:{_elapsedTime.Seconds:D2}");
+
+                // חישוב זמן ממוצע לשאלה
+                double avgSecondsPerQuestion = _elapsedTime.TotalSeconds / _questions.Count;
+                TimeSpan avgTime = TimeSpan.FromSeconds(avgSecondsPerQuestion);
+
+                sb.AppendLine($"🕑 ממוצע לשאלה: {(int)avgTime.TotalMinutes:D2}:{avgTime.Seconds:D2} דקות");
+
+
+                // מציגים את הסיכום
+                MessageBox.Show(sb.ToString(), "סיכום התרגול");
+
+                // סוגרים את הטופס (או מתאפשר לשוב למסך קודם)
                 this.Close();
             }
         }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -205,6 +306,30 @@ namespace Exam_Questioner
                 ShowCurrentQuestion();
             }
         }
+
+        private void InitializePracticeTimer()
+        {
+            _elapsedTime = TimeSpan.Zero;
+            _sessionStartTime = DateTime.Now;
+
+            _practiceTimer = new Timer();
+            _practiceTimer.Interval = 1000; // כל שניה
+            _practiceTimer.Tick += PracticeTimer_Tick;
+            _practiceTimer.Start();
+
+            // אם יש לך כפתור timepractice — אפשר להציג עליו את הזמן:
+            timepractice.Text = "00:00:00";
+        }
+
+        private void PracticeTimer_Tick(object sender, EventArgs e)
+        {
+            _elapsedTime = DateTime.Now - _sessionStartTime;
+
+            // מעדכנים את הכפתור timepractice:
+            timepractice.Text = $"{(int)_elapsedTime.TotalHours:D2}:{_elapsedTime.Minutes:D2}:{_elapsedTime.Seconds:D2}";
+        }
+
+
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
         {
@@ -251,6 +376,126 @@ namespace Exam_Questioner
             public string Type { get; set; }
             public string Correct { get; set; }
             public List<string> Choices { get; set; }
+        }
+
+        private void labelTitle_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panelHeader_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panelAnswers_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+
+        private void BuildPanelAnswers(string questionType)
+        {
+            // === פנל פנימי לגלילה ===
+            Panel panelInnerAnswers = new Panel();
+            panelInnerAnswers.Name = "panelInnerAnswers";
+            panelInnerAnswers.Location = new System.Drawing.Point(0, 0);
+            panelInnerAnswers.BackColor = System.Drawing.Color.Transparent;
+
+            // === פרמטרים ===
+            int numAnswers = 4;
+            int answerHeight = 80;
+            int spacing = 2;
+            int startY = 30;
+            int totalHeight = 0;
+
+            // === labelAnswersTitle ===
+            this.labelAnswersTitle.Location = new System.Drawing.Point(1200, 10);
+            panelInnerAnswers.Controls.Add(this.labelAnswersTitle);
+
+            // === אם זו שאלה פתוחה ===
+            if (questionType == "Open")
+            {
+                this.richTextBox1.Visible = true;
+                this.richTextBox1.Location = new System.Drawing.Point(50, startY);
+                this.richTextBox1.Size = new System.Drawing.Size(1163, 190);
+                panelInnerAnswers.Controls.Add(this.richTextBox1);
+
+                // מסתירים את ה־radioButtons
+                this.radioButton1.Visible = false;
+                this.radioButton2.Visible = false;
+                this.radioButton3.Visible = false;
+                this.radioButton4.Visible = false;
+
+                totalHeight = startY + this.richTextBox1.Height + 50;
+            }
+            // === אם זו שאלה אמריקאית ===
+            else if (questionType == "MultipleChoice")
+            {
+                this.richTextBox1.Visible = false;
+
+                this.radioButton1.Visible = true;
+                this.radioButton2.Visible = true;
+                this.radioButton3.Visible = true;
+                this.radioButton4.Visible = true;
+
+                this.radioButton1.Location = new System.Drawing.Point(50, startY + 0 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton1);
+
+                this.radioButton2.Location = new System.Drawing.Point(50, startY + 1 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton2);
+
+                this.radioButton3.Location = new System.Drawing.Point(50, startY + 2 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton3);
+
+                this.radioButton4.Location = new System.Drawing.Point(50, startY + 3 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton4);
+
+                totalHeight = startY + numAnswers * (answerHeight + spacing) + 50;
+            }
+            // === אם זו שאלה נכון/לא נכון ===
+            else if (questionType == "TrueFalse")
+            {
+                this.richTextBox1.Visible = false;
+
+                this.radioButton1.Visible = true;
+                this.radioButton2.Visible = true;
+
+                this.radioButton3.Visible = false;
+                this.radioButton4.Visible = false;
+
+                this.radioButton1.Text = "נכון";
+                this.radioButton2.Text = "לא נכון";
+
+                this.radioButton1.Location = new System.Drawing.Point(50, startY + 0 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton1);
+
+                this.radioButton2.Location = new System.Drawing.Point(50, startY + 1 * (answerHeight + spacing));
+                panelInnerAnswers.Controls.Add(this.radioButton2);
+
+                totalHeight = startY + 2 * (answerHeight + spacing) + 50;
+            }
+
+            // === הוספת הפאנל הפנימי ל־panelAnswers ===
+            this.panelAnswers.Controls.Clear();
+            this.panelAnswers.Controls.Add(panelInnerAnswers);
+
+            // === הפעלת גלילה ===
+            panelInnerAnswers.Size = new Size(1347, totalHeight);
+            this.panelAnswers.AutoScroll = true;
+            this.panelAnswers.AutoScrollMinSize = new Size(1347, totalHeight);
+        }
+
+
+
+        private void panelQuestion_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
+using System.Net;
 
-
-
-namespace Study_Management
+namespace Exam_Questioner
 {
     public partial class LogInForm : Form
     {
@@ -22,19 +21,15 @@ namespace Study_Management
             string password = txtPassword.Text;
             string role = selectedRole;
 
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-            {
-                MessageBox.Show("נא להזין שם משתמש וסיסמה");
-                return;
-            }
+            // שימוש בלוגיקה החדשה לאימות המשתמש
+            LoginResult result = LoginLogic.AuthenticateUser(username, password, role);
 
-            bool exists = ExcelHelper.UserExists(username, password, selectedRole);
-            if (exists)
+            if (result.IsSuccess)
             {
-                // התחברות הצליחה – תציג גם את ההתחברות לפי התפקיד
-                MessageBox.Show($"התחברת כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}.");
+                // התחברות מוצלחת
+                MessageBox.Show(result.Message);
 
-                MainForm mainForm = new MainForm(username, selectedRole);
+                MainForm mainForm = new MainForm(result.Username, result.FullName, result.Role, result.Email);
                 mainForm.StartPosition = FormStartPosition.Manual;
                 mainForm.Location = this.Location;
 
@@ -44,10 +39,8 @@ namespace Study_Management
             }
             else
             {
-                // התחברות נכשלה – אל תציג שום תפקיד
-                MessageBox.Show("שם משתמש, סיסמה או תפקיד שגויים.");
-
-                // change to seperate messages!!!!
+                // התחברות נכשלה
+                MessageBox.Show(result.Message);
             }
 
 
@@ -59,14 +52,12 @@ namespace Study_Management
             // במקום לרשום מה־Login Form, פשוט פותחים את מסך ההרשמה
             RegisterForm registerForm = new RegisterForm(selectedRole);
             registerForm.Show();
-            this.Hide(); // לא חובה, רק אם את רוצה להסתיר את מסך ההתחברות
+            this.Hide();
         }
 
         private void LogInForm_Load(object sender, EventArgs e)
         {
-            CenterPanel();
-
-            this.Resize += (s, eArgs) => CenterPanel();
+            // עדכון הטקסט של הכותרת
             lblRole.Text = $"התחברות כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}";
 
         }
@@ -103,11 +94,20 @@ namespace Study_Management
         {
             this.Hide();
             StartForm startForm = new StartForm();
-            startForm.ShowDialog(); // ⬅️ בלי ShowRoleSelectionOnly
+            startForm.ShowRoleSelectionOnly("login"); // העבר את הפעולה הנוכחית
+            startForm.Show();
             this.Close();
         }
 
+        private void BtnTogglePassword_Click(object sender, EventArgs e)
+        {
+            txtPassword.UseSystemPasswordChar = !txtPassword.UseSystemPasswordChar;
+        }
 
-
+        private void lblRole_Click(object sender, EventArgs e) { }
+        private void txtUsername_TextChanged(object sender, EventArgs e) { }
+        private void lblUsername_Click(object sender, EventArgs e) { }
+        private void txtPassword_TextChanged(object sender, EventArgs e) { }
+        private void mainPanel_Paint(object sender, PaintEventArgs e) { }
     }
 }

@@ -15,6 +15,9 @@ namespace Study_Management
         [STAThread]
         static void Main()
         {
+            EnvLoader.Load();
+            var test = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            System.Diagnostics.Debug.WriteLine("✅ API key length: " + (test?.Length ?? 0));
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FormSplash());
