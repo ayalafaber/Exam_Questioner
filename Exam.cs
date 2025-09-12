@@ -75,7 +75,6 @@ namespace Exam_Questioner
             // איפוס בחירה
             radioButton1.Checked = radioButton2.Checked = radioButton3.Checked = radioButton4.Checked = false;
             richTextBox1.Clear();
-            richTextBox1.Height = _originalRichHeight;
 
             // קריאה ל־BuildPanelAnswers
             string panelType;
@@ -91,7 +90,6 @@ namespace Exam_Questioner
             // קביעת טקסטים
             if (q.Type == "אמריקאית")
             {
-                case "אמריקאית":
                 var rnd = new Random();
                 var shuffled = q.Choices.OrderBy(x => rnd.Next()).ToArray();
                 radioButton1.Text = shuffled[0];
@@ -103,13 +101,6 @@ namespace Exam_Questioner
             {
                 radioButton1.Text = "נכון";
                 radioButton2.Text = "לא נכון";
-                    radioButton1.Visible = radioButton2.Visible = true;
-                    break;
-
-                case "פתוחה":
-                    richTextBox1.Height = _originalRichHeight * 3;
-                    richTextBox1.Visible = true;
-                    break;
             }
 
             // שיחזור תשובה קיימת
@@ -211,7 +202,7 @@ namespace Exam_Questioner
             }
 
 
-            
+
             Dictionary<int, double> scores = new Dictionary<int, double>();
 
             for (int i = 0; i < _questions.Count; i++)
@@ -376,7 +367,7 @@ namespace Exam_Questioner
             if (questionType == "Open")
             {
                 this.richTextBox1.Visible = true;
-                this.richTextBox1.Location = new System.Drawing.Point(margin, startY+30);
+                this.richTextBox1.Location = new System.Drawing.Point(margin, startY + 30);
                 this.richTextBox1.Size = new System.Drawing.Size(questionPanelWidth - margin * 2, 190);
                 panelInnerAnswers.Controls.Add(this.richTextBox1);
 

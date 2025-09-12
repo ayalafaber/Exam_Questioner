@@ -11,13 +11,12 @@ namespace Exam_Questioner
         private string selectedRole;
         private ProgressBar progressBar;
         private Label progressLabel;
-        private Label motivationalLabel; 
+        private Label motivationalLabel;
         private Label usernameValidationLabel;
         private Label passwordValidationLabel;
         private Label idValidationLabel;
         private Label emailValidationLabel;
         private Label fullNameValidationLabel;
-
 
         public RegisterForm(string role)
         {
@@ -70,7 +69,7 @@ namespace Exam_Questioner
             Panel progressPanel = new Panel();
             progressPanel.BackColor = Color.FromArgb(24, 28, 33);
             progressPanel.Location = new Point(0, 80);
-            progressPanel.Size = new Size(1550, 50); 
+            progressPanel.Size = new Size(1550, 50);
             progressPanel.Dock = DockStyle.None;
             this.Controls.Add(progressPanel);
 
@@ -570,7 +569,6 @@ namespace Exam_Questioner
             this.Close();
         }
 
-
         private void RegisterForm_Load(object sender, EventArgs e)
         {
             lblRoleHeader.Text = $"הרשמה כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}";
@@ -585,7 +583,6 @@ namespace Exam_Questioner
         private void subtitleLabel_Click(object sender, EventArgs e)
         {
 
-            pnlContainer.Controls.Add(lblRoleHeader);
         }
     }
 }

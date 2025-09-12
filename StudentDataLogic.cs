@@ -19,7 +19,6 @@ namespace Exam_Questioner
             this.filePath = filePath;
         }
 
-        // פונקציה 1 - החזרת כל הנתונים מהגיליון Grades
         public DataTable GetAllStudentGrades()
         {
             using (var wb = new XLWorkbook(filePath))
@@ -29,8 +28,6 @@ namespace Exam_Questioner
                 var range = wsGrades.RangeUsed();
 
                 DataTable dt = new DataTable();
-                foreach (var cell in range.Row(1).Cells())
-                    dt.Columns.Add(cell.GetString());
 
                 // שורה 3 ב־Grades היא שורת ה־Levels (נניח שיש שם ערכים רציפים)
                 var levelRow = wsGrades.Row(3);
@@ -138,14 +135,12 @@ namespace Exam_Questioner
                     }
                 }
 
-                // מיון מהגבוה לנמוך
                 DataView dv = result.DefaultView;
                 dv.Sort = "ממוצע ציונים DESC";
                 return dv.ToTable();
             }
         }
 
-        // פונקציה 3 - סטטיסטיקות כלליות על כל הציונים
         public DataTable GetStatistics()
         {
             using (var wb = new XLWorkbook(filePath))
@@ -396,9 +391,6 @@ namespace Exam_Questioner
                 DataTable dt = new DataTable();
                 int colCount = wsGrades.Row(3).LastCellUsed().Address.ColumnNumber;
 
-                // שלב 1: כותרות העמודות — נקבע ידנית
-                int colCount = ws.Row(3).LastCellUsed().Address.ColumnNumber;
-                // מספר עמודות לפי שורת המקצועות
                 for (int i = 0; i < colCount; i++)
                     dt.Columns.Add("Column" + (i + 1));
 

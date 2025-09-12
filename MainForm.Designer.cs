@@ -5,13 +5,6 @@
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.Panel educationalPanel; // Panel for educational decorations
 
-        private Panel pnlStudent;
-        private Panel pnlLecturer;
-        private Label lblStudent;
-        private Label lblLecturer;
-        private Label labelWelcome;
-        private Button btnLogout;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))

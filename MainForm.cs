@@ -1,5 +1,4 @@
-﻿using Exam_Questioner;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -40,16 +39,11 @@ namespace Exam_Questioner
             {
                 pnlStudent.Visible = true;
                 pnlLecturer.Visible = false;
-                AddStudentButtons();
             }
-
-
-
             else if (_role == "Lecturer")
             {
                 pnlLecturer.Visible = true;
                 pnlStudent.Visible = false;
-                AddLecturerButtons();
             }
 
             // Store original button colors

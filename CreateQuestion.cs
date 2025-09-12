@@ -10,7 +10,6 @@ using System.Media;
 
 namespace Exam_Questioner
 {
-
     public partial class CreateQuestion : Form
     {
         private string _selectedCategory = null;
@@ -128,7 +127,6 @@ namespace Exam_Questioner
                     .OrderBy(c => c)
                     .ToList();
             }
-                comboBoxCategory.Enabled = true;
         }
 
         private Panel CreateCategoryPanel(string category, int questionCount, Color color)
@@ -437,7 +435,6 @@ namespace Exam_Questioner
             }
 
             ClearForm();
-            LoadQuestionsToGrid();
         }
 
         private void OpenCategoryEditor(string category)
@@ -620,10 +617,6 @@ namespace Exam_Questioner
                 }
                 workbook.Save();
             }
-
-            MessageBox.Show("השאלה עודכנה בהצלחה.");
-            ClearForm();
-            LoadQuestionsToGrid();
         }
 
         private bool IsFormIncomplete()

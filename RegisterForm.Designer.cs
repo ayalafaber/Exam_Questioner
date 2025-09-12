@@ -278,7 +278,6 @@ namespace Exam_Questioner
             this.txtPassword.Size = new System.Drawing.Size(720, 29);
             this.txtPassword.TabIndex = 0;
             this.txtPassword.UseSystemPasswordChar = true;
-
             // 
             // btnTogglePassword
             // 
@@ -385,23 +384,6 @@ namespace Exam_Questioner
             this.peoplePanel.Size = new System.Drawing.Size(1440, 150);
             this.peoplePanel.TabIndex = 1;
             this.peoplePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.peoplePanel_Paint);
-            // 
-            // pnlContainer
-            // 
-            this.pnlContainer.BackColor = Color.Transparent;
-            this.pnlContainer.Location = new Point(0, 0);
-            this.pnlContainer.Size = new Size(450, 300);
-            this.pnlContainer.Controls.Add(this.lblRole);
-            this.pnlContainer.Controls.Add(this.lblUsername);
-            this.pnlContainer.Controls.Add(this.txtUsername);
-            this.pnlContainer.Controls.Add(this.lblPassword);
-            this.pnlContainer.Controls.Add(this.txtPassword);
-            this.pnlContainer.Controls.Add(this.lblID);
-            this.pnlContainer.Controls.Add(this.txtID);
-            this.pnlContainer.Controls.Add(this.lblEmail);
-            this.pnlContainer.Controls.Add(this.txtEmail);
-            this.pnlContainer.Controls.Add(this.btnRegister);
-
             // 
             // RegisterForm
             // 

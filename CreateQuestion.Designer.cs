@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 
-
 namespace Exam_Questioner
 {
     partial class CreateQuestion
@@ -13,8 +12,6 @@ namespace Exam_Questioner
             if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
-
-        private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblQuestion;
         private System.Windows.Forms.Label lblType;
         private System.Windows.Forms.Label lblCategory;
@@ -25,7 +22,6 @@ namespace Exam_Questioner
         private System.Windows.Forms.ComboBox comboBoxType;
         private System.Windows.Forms.ComboBox comboBoxCategory;
         private System.Windows.Forms.ComboBox comboBoxDifficulty;
-        private System.Windows.Forms.TextBox txtAnswer;
 
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnEdit;
@@ -35,7 +31,6 @@ namespace Exam_Questioner
 
         private void InitializeComponent()
         {
-            this.lblTitle = new System.Windows.Forms.Label();
             this.lblQuestion = new System.Windows.Forms.Label();
             this.lblType = new System.Windows.Forms.Label();
             this.lblCategory = new System.Windows.Forms.Label();
@@ -45,24 +40,12 @@ namespace Exam_Questioner
             this.comboBoxType = new System.Windows.Forms.ComboBox();
             this.comboBoxCategory = new System.Windows.Forms.ComboBox();
             this.comboBoxDifficulty = new System.Windows.Forms.ComboBox();
-            this.txtAnswer = new System.Windows.Forms.TextBox();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
             this.questionsGrid = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.questionsGrid)).BeginInit();
             this.SuspendLayout();
-            // 
-            // lblTitle
-            // 
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
-            this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(51)))), ((int)(((byte)(0)))));
-            this.lblTitle.Location = new System.Drawing.Point(300, 10);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(222, 32);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "יצירת שאלה חדשה";
             // 
             // lblQuestion
             // 
@@ -146,7 +129,6 @@ namespace Exam_Questioner
             this.comboBoxType.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.comboBoxType.Size = new System.Drawing.Size(476, 33);
             this.comboBoxType.TabIndex = 4;
-            this.comboBoxType.SelectedIndexChanged += new System.EventHandler(this.comboBoxType_SelectedIndexChanged);
             // 
             // comboBoxCategory
             // 
@@ -172,16 +154,6 @@ namespace Exam_Questioner
             this.comboBoxDifficulty.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             this.comboBoxDifficulty.Size = new System.Drawing.Size(476, 33);
             this.comboBoxDifficulty.TabIndex = 8;
-            this.comboBoxDifficulty.SelectedIndexChanged += new System.EventHandler(this.comboBoxDifficulty_SelectedIndexChanged);
-            // 
-            // txtAnswer
-            // 
-            this.txtAnswer.Location = new System.Drawing.Point(180, 225);
-            this.txtAnswer.Multiline = true;
-            this.txtAnswer.Name = "txtAnswer";
-            this.txtAnswer.Size = new System.Drawing.Size(476, 60);
-            this.txtAnswer.TabIndex = 10;
-            this.txtAnswer.TextChanged += new System.EventHandler(this.txtAnswer_TextChanged);
             // 
             // btnSave
             // 
@@ -245,7 +217,6 @@ namespace Exam_Questioner
             this.questionsGrid.Size = new System.Drawing.Size(760, 250);
             this.questionsGrid.TabIndex = 14;
             this.questionsGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.questionsGrid_CellClick);
-            this.questionsGrid.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.questionsGrid_CellContentClick);
             // 
             // CreateQuestion
             // 
@@ -262,7 +233,6 @@ namespace Exam_Questioner
             this.Controls.Add(this.lblDifficulty);
             this.Controls.Add(this.comboBoxDifficulty);
             this.Controls.Add(this.lblAnswer);
-            this.Controls.Add(this.txtAnswer);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnEdit);
             this.Controls.Add(this.btnDelete);

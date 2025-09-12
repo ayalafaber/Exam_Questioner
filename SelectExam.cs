@@ -14,7 +14,6 @@ using System.Media;
 
 namespace Exam_Questioner
 {
-
     public partial class SelectExam : Form
     {
         // הוספת Label לכותרת המבחן
@@ -45,11 +44,6 @@ namespace Exam_Questioner
             // הוספת הכותרת לטופס
             this.Controls.Add(lblExamHeader);
             lblExamHeader.BringToFront();
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -87,9 +81,7 @@ namespace Exam_Questioner
                     .Distinct()
                     .ToArray();
 
-                // 7. הוספת הקטגוריות ל-ComboBox1 ואז הוספת האפשרות "אחר" ו"רנדומלי"
                 comboBox1.Items.AddRange(categories.Cast<object>().ToArray());
-                comboBox1.Items.Add("רנדומלי");
                 comboBox1.Items.Add("אחר");
                 comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
                 comboBox1.Items.Insert(0, "רנדומלי");
@@ -224,8 +216,6 @@ namespace Exam_Questioner
                 var cq = new CreateQuestion();
                 cq.SetTargetQuestions(input, difficulty, questionCount);
                 cq.ShowDialog();
-                return;
-            }
 
                 // לאחר סגירת CreateQuestion, נסה ליצור את המבחן
                 bool ok = ExamGeneratorLogic.TryCreateExam(
@@ -238,7 +228,6 @@ namespace Exam_Questioner
                     out string examId
                 );
 
-            // 5. תוצאה
                 if (ok)
                 {
                     MessageBox.Show($"מעולה! המבחן נוצר בהצלחה!\n{message}", "הצלחה", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -395,7 +384,6 @@ namespace Exam_Questioner
                     {
                         dataGridView1.Rows[rowIndex].DefaultCellStyle.BackColor = Color.White;
                     }
-                    dataGridView1.Rows.Add(values);
                 }
             }
         }
@@ -478,10 +466,6 @@ namespace Exam_Questioner
             try
             {
                 listbox.Items.Clear();
-                listbox.Enabled = true;
-                listbox.Visible = true;
-                button4.Visible = true;
-                button5.Visible = true;
 
                 using (var wb = new XLWorkbook(filePath))
                 {
@@ -572,7 +556,6 @@ namespace Exam_Questioner
                         MessageBoxIcon.Information
                     );
 
-                // 7. מעבר לטופס יצירת שאלות עם קטגוריה נעולה
                     var cq = new CreateQuestion();
                     cq.PreselectCategory(input);
                     cq.ShowDialog();
@@ -585,10 +568,6 @@ namespace Exam_Questioner
                 }
             }
         }
-
-
-
-
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -711,8 +690,6 @@ namespace Exam_Questioner
 
         private void randomExamGroupBox_Enter(object sender, EventArgs e)
         {
-            CreateQuestion form = new CreateQuestion();
-            form.Show();
 
         }
 
@@ -721,5 +698,4 @@ namespace Exam_Questioner
 
         }
     }
-
 }

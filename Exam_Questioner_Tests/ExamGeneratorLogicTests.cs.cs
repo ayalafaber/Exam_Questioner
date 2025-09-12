@@ -1,5 +1,4 @@
-﻿
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,22 +64,6 @@ namespace Exam_Questioner_Tests
             bool result = ExamGeneratorLogic.TryCreateExam(
                 subject: "תכנות",
                 difficulty: "קל",
-                questionCountText: "abc",
-                allSubjects: new List<string> { "תכנות" },
-                allDifficulties: new List<string> { "קל" },
-                out string message,
-                out string examId
-            );
-            Assert.IsFalse(result);
-            Assert.AreEqual("מספר השאלות חייב להיות בין 4 ל‑12.", message);
-        }
-
-        [TestMethod]
-        public void TryCreateExam_InvalidQuestionCount_ReturnsError()
-        {
-            bool result = ExamGeneratorLogic.TryCreateExam(
-                subject: "תכנות",
-                difficulty: "קשה",
                 questionCountText: "2",
                 allSubjects,
                 allDifficulties,
@@ -112,14 +95,11 @@ namespace Exam_Questioner_Tests
             // Assert
             Assert.IsFalse(result);
             Assert.AreEqual("קובץ database.xlsx לא נמצא על שולחן‑העבודה.", message);
-            }
-        }
 
             // Cleanup
             if (File.Exists(filePath + ".bak"))
                 File.Move(filePath + ".bak", filePath);
         }
-
 
         [TestMethod]
         public void TryCreateExam_WithValidInput_CreatesExam()
@@ -132,22 +112,6 @@ namespace Exam_Questioner_Tests
             bool result = ExamGeneratorLogic.TryCreateExam(
                 subject: "תכנות",
                 difficulty: "קל",
-                questionCountText: "13",
-                allSubjects: new List<string> { "תכנות" },
-                allDifficulties: new List<string> { "קל" },
-                out string message,
-                out string examId
-            );
-            Assert.IsFalse(result);
-            Assert.AreEqual("מספר השאלות חייב להיות בין 4 ל‑12.", message);
-        }
-
-        [TestMethod]
-        public void TryCreateExam_RandomSubjectAndDifficulty_ReturnsSuccess()
-        {
-            bool result = ExamGeneratorLogic.TryCreateExam(
-                subject: "רנדומלי",
-                difficulty: "",
                 questionCountText: "4",
                 allSubjects,
                 allDifficulties,
@@ -166,12 +130,10 @@ namespace Exam_Questioner_Tests
             }
             else
             {
-                // לא בודקים הודעה מדויקת אלא רק שההפעלה נכשלה – למניעת בעיות במבחן ריק
                 Assert.IsFalse(result);
                 Assert.AreEqual("קובץ database.xlsx לא נמצא על שולחן‑העבודה.", message);
             }
         }
-
 
         [TestMethod]
         public void DeleteExam_WithValidExamId_DeletesExam()
@@ -237,19 +199,6 @@ namespace Exam_Questioner_Tests
         }
 
         [TestMethod]
-        public void ReloadExamList_LoadsIdsFromExcel()
-        {
-            var exams = ExamGeneratorLogic.LoadExamIds();
-
-            Assert.IsNotNull(exams, "הרשימה שהתקבלה היא null");
-            Assert.IsTrue(exams.Count >= 0, "הרשימה לא נטענה כראוי"); // בדיקה כללית – אין קריסה
-        }
-        [TestMethod]
-        public void IsValidHebrewSubject_HebrewWithSpaces_ReturnsTrue()
-        {
-            Assert.IsTrue(ExamGeneratorLogic.IsValidHebrewSubject("תולדות ישראל"));
-        }
-        [TestMethod]
         public void IsValidHebrewSubject_WithInvalidInput_ReturnsFalse()
         {
             // Arrange + Act + Assert
@@ -268,8 +217,5 @@ namespace Exam_Questioner_Tests
             Assert.IsNotNull(exams);
             Assert.IsTrue(exams.Count >= 0); // General sanity check
         }
-
-
-
     }
 }

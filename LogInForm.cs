@@ -42,14 +42,10 @@ namespace Exam_Questioner
                 // התחברות נכשלה
                 MessageBox.Show(result.Message);
             }
-
-
         }
-
 
         private void BtnRegister_Click(object sender, EventArgs e)
         {
-            // במקום לרשום מה־Login Form, פשוט פותחים את מסך ההרשמה
             RegisterForm registerForm = new RegisterForm(selectedRole);
             registerForm.Show();
             this.Hide();
@@ -59,35 +55,6 @@ namespace Exam_Questioner
         {
             // עדכון הטקסט של הכותרת
             lblRole.Text = $"התחברות כ{(selectedRole == "Student" ? "סטודנט" : "מרצה")}";
-
-        }
-
-
-        private void CenterPanel()
-        {
-            pnlContainer.Location = new Point(
-                (this.ClientSize.Width - pnlContainer.Width) / 2,
-                (this.ClientSize.Height - pnlContainer.Height) / 2
-            );
-
-            // מיקום של הטקסט בתוך הפאנל
-            lblUsername.Top = 20;
-            lblUsername.Left = 30;
-            txtUsername.Top = lblUsername.Top;
-            txtUsername.Left = lblUsername.Right + 10;
-
-            lblPassword.Top = lblUsername.Bottom + 20;
-            lblPassword.Left = lblUsername.Left;
-            txtPassword.Top = lblPassword.Top;
-            txtPassword.Left = lblPassword.Right + 10;
-
-            // מיקום כפתור התחברות
-            btnLogin.Top = txtPassword.Bottom + 30;
-            btnLogin.Left = (pnlContainer.Width - btnLogin.Width) / 2;
-
-            // כפתור חזור
-            btnBack.Top = 10;
-            btnBack.Left = 10;
         }
 
         private void btnBack_Click(object sender, EventArgs e)
